@@ -46,7 +46,7 @@ export function OrderHistory() {
       {orders.map((order) => (
         <Link
           key={order.id}
-          href={`/tracking/${order.id}`}
+          href={`/tracking?id=${order.id}`}
           className="block rounded-lg border border-gray-200 bg-white p-4 transition-colors hover:border-gray-300"
         >
           <div className="flex items-center justify-between">

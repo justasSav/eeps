@@ -56,7 +56,7 @@ export function CheckoutForm() {
       });
 
       clearCart();
-      router.push(`/tracking/${orderId}`);
+      router.push(`/tracking?id=${orderId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to submit order.");
     } finally {
