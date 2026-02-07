@@ -2,7 +2,7 @@
 
 A mobile-first digital ordering system for a local pizza and kebab shop. Customers browse the menu, customize items, add to cart, checkout, and track orders in real-time. An admin dashboard lets staff manage incoming orders through their lifecycle.
 
-**Live site:** [https://justassav.github.io/eeps/](https://justassav.github.io/eeps/)
+Live site: [https://justassav.github.io/eeps/](https://justassav.github.io/eeps/)
 
 ## Tech Stack
 
