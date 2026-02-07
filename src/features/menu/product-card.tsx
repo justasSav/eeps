@@ -39,7 +39,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
               {product.dietary_tags.map((tag) => (
                 <Badge
                   key={tag}
-                  variant={tag === "spicy" ? "spicy" : tag === "vegetarian" ? "vegetarian" : "default"}
+                  variant={tag === "aštrus" ? "spicy" : tag === "vegetariškas" ? "vegetarian" : "default"}
                 >
                   {tag}
                 </Badge>
@@ -50,7 +50,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
         <div className="mt-2 flex justify-end">
           <Button size="sm" onClick={() => onAdd(product)}>
             <Plus className="h-4 w-4" />
-            Add
+            Pridėti
           </Button>
         </div>
       </div>

@@ -15,13 +15,13 @@ export function OrderHistory() {
       <div className="flex flex-col items-center justify-center py-16">
         <ClipboardList className="h-16 w-16 text-gray-300" />
         <h2 className="mt-4 text-lg font-semibold text-gray-900">
-          No orders yet
+          Užsakymų dar nėra
         </h2>
         <p className="mt-1 text-sm text-gray-500">
-          Place your first order from our menu!
+          Pateikite pirmąjį užsakymą iš mūsų meniu!
         </p>
         <Link href="/" className="mt-6">
-          <Button>Browse Menu</Button>
+          <Button>Naršyti meniu</Button>
         </Link>
       </div>
     );
@@ -29,7 +29,7 @@ export function OrderHistory() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-gray-900">Order History</h1>
+      <h1 className="text-xl font-bold text-gray-900">Užsakymų istorija</h1>
       {orders.map((order) => (
         <Link
           key={order.id}
@@ -38,12 +38,12 @@ export function OrderHistory() {
         >
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-900">
-              Order #{order.id}
+              Užsakymas #{order.id}
             </span>
             <StatusBadge status={order.status} />
           </div>
           <p className="mt-1 text-xs text-gray-500">
-            {new Date(order.created_at).toLocaleDateString("en-GB", {
+            {new Date(order.created_at).toLocaleDateString("lt-LT", {
               day: "numeric",
               month: "short",
               year: "numeric",
@@ -53,7 +53,12 @@ export function OrderHistory() {
           </p>
           <div className="mt-2 flex items-center justify-between">
             <span className="text-sm text-gray-600">
-              {order.items.length} item{order.items.length !== 1 ? "s" : ""}
+              {order.items.length}{" "}
+              {order.items.length === 1
+                ? "prekė"
+                : order.items.length < 10 && order.items.length > 1
+                ? "prekės"
+                : "prekių"}
             </span>
             <span className="font-semibold text-orange-600">
               {formatPrice(order.total_amount)}

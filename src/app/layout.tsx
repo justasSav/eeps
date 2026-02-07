@@ -3,9 +3,9 @@ import "./globals.css";
 import { Navbar } from "@/components/shared/navbar";
 
 export const metadata: Metadata = {
-  title: "EEPS — Pizza & Kebab Ordering",
+  title: "EEPS — Picų ir kebabų užsakymas",
   description:
-    "Order delicious pizzas and kebabs for delivery or pickup.",
+    "Užsisakykite skaniausias picas ir kebabus pristatymui arba atsiėmimui.",
 };
 
 export default function RootLayout({
@@ -14,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="lt">
       <body className="bg-gray-50 font-sans text-gray-900 antialiased">
         <div className="mx-auto min-h-screen max-w-lg">
           <Navbar />

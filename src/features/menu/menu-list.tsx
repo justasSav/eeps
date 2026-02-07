@@ -41,7 +41,7 @@ export function MenuList() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <Input
-          placeholder="Search menu..."
+          placeholder="Ieškoti meniu..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-9"
@@ -72,7 +72,7 @@ export function MenuList() {
       ))}
 
       {filteredCategories.length === 0 && (
-        <p className="py-8 text-center text-gray-500">No items found.</p>
+        <p className="py-8 text-center text-gray-500">Nieko nerasta.</p>
       )}
     </div>
   );
