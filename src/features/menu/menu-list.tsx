@@ -59,7 +59,7 @@ export function MenuList() {
       {filteredCategories.map((cat) => (
         <section key={cat.id}>
           <h2 className="mb-2 text-lg font-bold text-gray-900">{cat.name}</h2>
-          <div className="space-y-3">
+          <div className="divide-y divide-gray-200">
             {cat.products.map((product) => (
               <ProductCard
                 key={product.id}
