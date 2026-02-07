@@ -195,6 +195,32 @@ This document defines specialized agent workflows for common coding tasks in the
 
 ---
 
+## Agent: UI Tester
+
+**Role:** Performs end-to-end UI testing of the deployed EEPS application using Playwright MCP.
+
+**Trigger:** User requests UI testing, visual verification, or regression testing after a deployment.
+
+**Requires:** Playwright MCP server (configured in `.claude/mcp.json`)
+
+**Target URL:** https://justassav.github.io/eeps/
+
+**Process:**
+1. **Setup** — Verify Playwright MCP tools are available
+2. **Navigate** — Open the target URL in the browser
+3. **Execute test suites** from `.claude/agents/ui-testing-agent.md`:
+   - Smoke Test (page load & navigation)
+   - Menu Browsing (search & category filter)
+   - Product Customization (modifier selection & pricing)
+   - Cart Functionality (add, update, remove items)
+   - Checkout Flow (form rendering & validation)
+   - Responsive Design (mobile, tablet, desktop viewports)
+4. **Report** — Summarize pass/fail results per suite with any issues found
+
+**Full test plan:** See `.claude/agents/ui-testing-agent.md` for detailed steps and pass criteria.
+
+---
+
 ## Multi-Agent Coordination Patterns
 
 ### Pattern: Full Feature Implementation
@@ -214,3 +240,9 @@ This document defines specialized agent workflows for common coding tasks in the
 1. **Code Reviewer** → identifies issues across the codebase
 2. **Refactoring Specialist** → applies targeted improvements
 3. **Build verification** → `npm run build && npm run lint`
+
+### Pattern: Deploy & Verify
+1. **Feature Builder** or **Bug Fixer** → implements changes
+2. **Build verification** → `npm run build && npm run lint`
+3. Push to `main` → GitHub Actions deploys to Pages
+4. **UI Tester** → runs regression tests against the live site via Playwright MCP

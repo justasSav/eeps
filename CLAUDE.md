@@ -17,6 +17,7 @@ eeps/
 ├── .env.example                     # Required env vars template
 ├── .claude/
 │   ├── settings.json                # Claude Code project settings
+│   ├── mcp.json                     # MCP server config (Playwright)
 │   ├── commands/                    # Custom slash commands
 │   │   ├── add-feature.md           # /add-feature — scaffold a new feature
 │   │   ├── debug-order-flow.md      # /debug-order-flow — trace order issues
@@ -25,7 +26,8 @@ eeps/
 │   │   └── review-component.md      # /review-component — review a component
 │   └── agents/                      # Agent definitions for research & coding
 │       ├── research-plan.md         # Research plan for investigating issues
-│       └── coding-agents.md         # Coding agent workflows
+│       ├── coding-agents.md         # Coding agent workflows
+│       └── ui-testing-agent.md      # UI testing via Playwright MCP
 ├── next.config.ts                   # Next.js config (image remotePatterns)
 ├── tsconfig.json                    # TypeScript config (strict, path alias @/*)
 ├── postcss.config.mjs               # PostCSS — Tailwind CSS 4 plugin
