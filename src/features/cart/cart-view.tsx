@@ -17,13 +17,13 @@ export function CartView() {
       <div className="flex flex-col items-center justify-center py-16">
         <ShoppingCart className="h-16 w-16 text-gray-300" />
         <h2 className="mt-4 text-lg font-semibold text-gray-900">
-          Your cart is empty
+          Jūsų krepšelis tuščias
         </h2>
         <p className="mt-1 text-sm text-gray-500">
-          Add some delicious items from our menu!
+          Pridėkite skanių patiekalų iš mūsų meniu!
         </p>
         <Link href="/" className="mt-6">
-          <Button>Browse Menu</Button>
+          <Button>Naršyti meniu</Button>
         </Link>
       </div>
     );
@@ -32,12 +32,12 @@ export function CartView() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Your Cart</h1>
+        <h1 className="text-xl font-bold text-gray-900">Jūsų krepšelis</h1>
         <button
           onClick={clearCart}
           className="text-sm text-red-600 hover:text-red-700"
         >
-          Clear all
+          Išvalyti viską
         </button>
       </div>
 
@@ -49,14 +49,14 @@ export function CartView() {
 
       <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
         <div className="flex items-center justify-between text-lg font-bold">
-          <span>Total</span>
+          <span>Iš viso</span>
           <span className="text-orange-600">{formatPrice(getTotal())}</span>
         </div>
       </div>
 
       <Link href="/checkout" className="block">
         <Button className="w-full" size="lg">
-          Proceed to Checkout
+          Pereiti prie apmokėjimo
         </Button>
       </Link>
     </div>

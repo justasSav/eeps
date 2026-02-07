@@ -14,12 +14,20 @@ const statusSteps: OrderStatus[] = [
   "COMPLETED",
 ];
 
+const stepLabels: Record<string, string> = {
+  CREATED: "Užsakymas pateiktas",
+  ACCEPTED: "Užsakymas priimtas",
+  PREPARING: "Ruošiamas",
+  READY: "Paruoštas",
+  COMPLETED: "Įvykdytas",
+};
+
 export function OrderTracker({ orderId }: { orderId: string }) {
   const order = useOrderStore((s) => s.getOrder(orderId));
 
   if (!order) {
     return (
-      <p className="py-8 text-center text-gray-500">Order not found.</p>
+      <p className="py-8 text-center text-gray-500">Užsakymas nerastas.</p>
     );
   }
 
@@ -29,9 +37,9 @@ export function OrderTracker({ orderId }: { orderId: string }) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-xl font-bold text-gray-900">Order Tracking</h1>
+        <h1 className="text-xl font-bold text-gray-900">Užsakymo sekimas</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Order #{order.id}
+          Užsakymas #{order.id}
         </p>
         <div className="mt-2">
           <StatusBadge status={order.status} />
@@ -69,15 +77,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
                         : "text-gray-400"
                     }`}
                   >
-                    {step === "CREATED"
-                      ? "Order Submitted"
-                      : step === "ACCEPTED"
-                      ? "Order Accepted"
-                      : step === "PREPARING"
-                      ? "In the Kitchen"
-                      : step === "READY"
-                      ? "Ready"
-                      : "Completed"}
+                    {stepLabels[step]}
                   </span>
                 </div>
               );
@@ -88,24 +88,24 @@ export function OrderTracker({ orderId }: { orderId: string }) {
 
       {isCancelled && (
         <div className="rounded-lg bg-red-50 p-4 text-center">
-          <p className="font-medium text-red-800">This order was cancelled.</p>
+          <p className="font-medium text-red-800">Šis užsakymas buvo atšauktas.</p>
         </div>
       )}
 
       {/* Order details */}
       <div className="rounded-lg border border-gray-200 p-4">
-        <h2 className="mb-2 font-semibold text-gray-900">Order Details</h2>
+        <h2 className="mb-2 font-semibold text-gray-900">Užsakymo informacija</h2>
         <div className="space-y-1 text-sm">
           <p>
-            <span className="text-gray-500">Type:</span>{" "}
-            {order.fulfillment_type === "delivery" ? "Delivery" : "Pickup"}
+            <span className="text-gray-500">Tipas:</span>{" "}
+            {order.fulfillment_type === "delivery" ? "Pristatymas" : "Atsiėmimas"}
           </p>
           <p>
-            <span className="text-gray-500">Phone:</span> {order.contact_phone}
+            <span className="text-gray-500">Telefonas:</span> {order.contact_phone}
           </p>
           {order.delivery_address && (
             <p>
-              <span className="text-gray-500">Address:</span>{" "}
+              <span className="text-gray-500">Adresas:</span>{" "}
               {order.delivery_address.street}, {order.delivery_address.city}{" "}
               {order.delivery_address.postal_code}
             </p>
@@ -121,7 +121,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
             </div>
           ))}
           <div className="mt-2 flex justify-between border-t border-gray-100 pt-2 font-bold">
-            <span>Total</span>
+            <span>Iš viso</span>
             <span className="text-orange-600">
               {formatPrice(order.total_amount)}
             </span>

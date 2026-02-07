@@ -12,10 +12,10 @@ function TrackingContent() {
     return (
       <div className="flex flex-col items-center justify-center py-16">
         <h2 className="text-lg font-semibold text-gray-900">
-          No order ID provided
+          Užsakymo ID nenurodytas
         </h2>
         <p className="mt-1 text-sm text-gray-500">
-          Please check your order link and try again.
+          Patikrinkite savo užsakymo nuorodą ir bandykite dar kartą.
         </p>
       </div>
     );

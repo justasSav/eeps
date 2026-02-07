@@ -16,10 +16,10 @@ const nextStatus: Partial<Record<OrderStatus, OrderStatus>> = {
 };
 
 const nextLabel: Partial<Record<OrderStatus, string>> = {
-  CREATED: "Accept",
-  ACCEPTED: "Start Preparing",
-  PREPARING: "Mark Ready",
-  READY: "Complete",
+  CREATED: "Priimti",
+  ACCEPTED: "Pradėti ruošti",
+  PREPARING: "Pažymėti paruoštu",
+  READY: "Užbaigti",
 };
 
 export function AdminDashboard() {
@@ -44,15 +44,15 @@ export function AdminDashboard() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
+        <h1 className="text-xl font-bold text-gray-900">Administratoriaus skydelis</h1>
         <Button variant="outline" size="sm" onClick={refresh}>
           <RefreshCw className="h-4 w-4" />
-          Refresh
+          Atnaujinti
         </Button>
       </div>
 
       {orders.length === 0 && (
-        <p className="py-8 text-center text-gray-500">No active orders.</p>
+        <p className="py-8 text-center text-gray-500">Aktyvių užsakymų nėra.</p>
       )}
 
       {orders.map((order) => (
@@ -63,19 +63,19 @@ export function AdminDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <span className="font-semibold text-gray-900">
-                Order #{order.id}
+                Užsakymas #{order.id}
               </span>
               <span className="ml-2 text-xs text-gray-500">
                 {order.fulfillment_type === "delivery"
-                  ? "Delivery"
-                  : "Pickup"}
+                  ? "Pristatymas"
+                  : "Atsiėmimas"}
               </span>
             </div>
             <StatusBadge status={order.status} />
           </div>
 
           <p className="mt-1 text-xs text-gray-500">
-            {new Date(order.created_at).toLocaleTimeString("en-GB", {
+            {new Date(order.created_at).toLocaleTimeString("lt-LT", {
               hour: "2-digit",
               minute: "2-digit",
             })}{" "}
@@ -104,7 +104,7 @@ export function AdminDashboard() {
 
           {order.notes && (
             <p className="mt-2 rounded bg-yellow-50 p-2 text-xs text-yellow-800">
-              Note: {order.notes}
+              Pastaba: {order.notes}
             </p>
           )}
 
@@ -118,7 +118,7 @@ export function AdminDashboard() {
                 size="sm"
                 onClick={() => handleCancel(order.id)}
               >
-                Cancel
+                Atšaukti
               </Button>
               {nextStatus[order.status] && (
                 <Button

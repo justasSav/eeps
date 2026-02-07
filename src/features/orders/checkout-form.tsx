@@ -30,11 +30,11 @@ export function CheckoutForm() {
     e.preventDefault();
     if (items.length === 0) return;
     if (!phone.trim()) {
-      setError("Phone number is required.");
+      setError("Telefono numeris privalomas.");
       return;
     }
     if (fulfillment === "delivery" && !street.trim()) {
-      setError("Delivery address is required.");
+      setError("Pristatymo adresas privalomas.");
       return;
     }
 
@@ -60,7 +60,7 @@ export function CheckoutForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Fulfillment type */}
       <div>
-        <h2 className="mb-2 font-semibold text-gray-900">Fulfillment</h2>
+        <h2 className="mb-2 font-semibold text-gray-900">Gavimo būdas</h2>
         <div className="flex gap-2">
           {(["pickup", "delivery"] as const).map((type) => (
             <button
@@ -73,7 +73,7 @@ export function CheckoutForm() {
                   : "border-gray-200 text-gray-600 hover:border-gray-300"
               }`}
             >
-              {type === "pickup" ? "Pickup" : "Delivery"}
+              {type === "pickup" ? "Atsiėmimas" : "Pristatymas"}
             </button>
           ))}
         </div>
@@ -82,11 +82,11 @@ export function CheckoutForm() {
       {/* Contact phone */}
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">
-          Phone Number
+          Telefono numeris
         </label>
         <Input
           type="tel"
-          placeholder="+44 7700 900000"
+          placeholder="+370 600 00000"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
         />
@@ -95,28 +95,28 @@ export function CheckoutForm() {
       {/* Delivery address */}
       {fulfillment === "delivery" && (
         <div className="space-y-3">
-          <h2 className="font-semibold text-gray-900">Delivery Address</h2>
+          <h2 className="font-semibold text-gray-900">Pristatymo adresas</h2>
           <Input
-            placeholder="Street address"
+            placeholder="Gatvė"
             value={street}
             onChange={(e) => setStreet(e.target.value)}
           />
           <div className="flex gap-2">
             <Input
-              placeholder="City"
+              placeholder="Miestas"
               value={city}
               onChange={(e) => setCity(e.target.value)}
               className="flex-1"
             />
             <Input
-              placeholder="Postal code"
+              placeholder="Pašto kodas"
               value={postalCode}
               onChange={(e) => setPostalCode(e.target.value)}
               className="w-32"
             />
           </div>
           <Input
-            placeholder="Delivery notes (e.g. gate code)"
+            placeholder="Pristatymo pastabos (pvz. vartų kodas)"
             value={addressNotes}
             onChange={(e) => setAddressNotes(e.target.value)}
           />
@@ -126,10 +126,10 @@ export function CheckoutForm() {
       {/* Order notes */}
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">
-          Order Notes (optional)
+          Užsakymo pastabos (neprivaloma)
         </label>
         <Textarea
-          placeholder="Any special requests..."
+          placeholder="Specialūs pageidavimai..."
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
@@ -148,7 +148,7 @@ export function CheckoutForm() {
           ))}
         </div>
         <div className="mt-3 flex items-center justify-between border-t border-gray-200 pt-3 text-lg font-bold">
-          <span>Total</span>
+          <span>Iš viso</span>
           <span className="text-orange-600">{formatPrice(getTotal())}</span>
         </div>
       </div>
@@ -158,7 +158,7 @@ export function CheckoutForm() {
       )}
 
       <Button type="submit" className="w-full" size="lg">
-        Place Order
+        Pateikti užsakymą
       </Button>
     </form>
   );
