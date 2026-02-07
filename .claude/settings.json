@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build)",
+      "Bash(npm run lint)",
+      "Bash(npm run dev)",
+      "Bash(npm install)",
+      "Bash(git *)",
+      "Bash(ls *)",
+      "Bash(npx tsc --noEmit)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(npm publish)",
+      "Bash(git push --force *)"
+    ]
+  }
+}
