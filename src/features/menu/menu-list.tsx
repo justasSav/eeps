@@ -1,0 +1,88 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import type { Category, Product } from "@/types";
+import { fetchMenu } from "@/services/menu";
+import { CategoryFilter } from "./category-filter";
+import { ProductCard } from "./product-card";
+import { ProductCustomizer } from "@/features/customizer/product-customizer";
+import { Loader } from "@/components/shared/loader";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+
+export function MenuList() {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  useEffect(() => {
+    fetchMenu()
+      .then(setCategories)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <Loader />;
+
+  const filteredCategories = categories
+    .filter((cat) => !activeCategory || cat.id === activeCategory)
+    .map((cat) => ({
+      ...cat,
+      products: cat.products.filter((p) =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    }))
+    .filter((cat) => cat.products.length > 0);
+
+  return (
+    <div className="space-y-4">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        <Input
+          placeholder="Search menu..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
+      {/* Category filter pills */}
+      <CategoryFilter
+        categories={categories}
+        activeId={activeCategory}
+        onSelect={setActiveCategory}
+      />
+
+      {/* Products grouped by category */}
+      {filteredCategories.map((cat) => (
+        <section key={cat.id}>
+          <h2 className="mb-2 text-lg font-bold text-gray-900">{cat.name}</h2>
+          <div className="space-y-3">
+            {cat.products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onCustomize={setSelectedProduct}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
+
+      {filteredCategories.length === 0 && (
+        <p className="py-8 text-center text-gray-500">No items found.</p>
+      )}
+
+      {/* Product customizer drawer */}
+      {selectedProduct && (
+        <ProductCustomizer
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+        />
+      )}
+    </div>
+  );
+}
