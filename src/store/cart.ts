@@ -7,7 +7,6 @@ import type {
   CartState,
   FulfillmentType,
   DeliveryAddress,
-  OrderItemModifiers,
 } from "@/types";
 import { generateCartKey } from "@/lib/utils";
 
@@ -38,7 +37,7 @@ export const useCartStore = create<CartState & CartActions>()(
       ...initialState,
 
       addItem: (item) => {
-        const cartKey = generateCartKey(item.product_id, item.modifiers);
+        const cartKey = generateCartKey(item.product_id);
         set((state) => {
           const existing = state.items.find((i) => i.cart_key === cartKey);
           if (existing) {
@@ -48,8 +47,7 @@ export const useCartStore = create<CartState & CartActions>()(
                   ? {
                       ...i,
                       quantity: i.quantity + 1,
-                      item_total:
-                        (i.item_total / i.quantity) * (i.quantity + 1),
+                      item_total: i.base_price * (i.quantity + 1),
                     }
                   : i
               ),
@@ -81,7 +79,7 @@ export const useCartStore = create<CartState & CartActions>()(
               ? {
                   ...i,
                   quantity,
-                  item_total: (i.item_total / i.quantity) * quantity,
+                  item_total: i.base_price * quantity,
                 }
               : i
           ),

@@ -10,30 +10,15 @@ export type OrderStatus =
 
 export type FulfillmentType = "delivery" | "pickup";
 
-export interface ModifierOption {
-  id: string;
-  name: string;
-  price_mod: number; // in pence/cents
-}
-
-export interface ModifierGroup {
-  id: string;
-  name: string;
-  min_required: number;
-  max_allowed: number;
-  options: ModifierOption[];
-}
-
 export interface Product {
   id: string;
   category_id: string;
   name: string;
   description: string;
-  base_price: number; // in pence/cents
+  base_price: number; // in cents
   image_url: string | null;
   is_available: boolean;
   dietary_tags: string[]; // e.g. ["vegetarian", "spicy"]
-  modifier_groups: ModifierGroup[];
 }
 
 export interface Category {
@@ -50,17 +35,12 @@ export interface DeliveryAddress {
   notes: string;
 }
 
-export interface OrderItemModifiers {
-  [groupName: string]: string | string[] | number;
-}
-
 export interface OrderItem {
   product_id: string;
   product_name: string;
   quantity: number;
   base_price: number;
-  modifiers: OrderItemModifiers;
-  item_total: number; // base_price + modifier adjustments * quantity
+  item_total: number; // base_price * quantity
 }
 
 export interface Order {
@@ -79,13 +59,12 @@ export interface Order {
 // === Cart Types ===
 
 export interface CartItem {
-  /** Unique key combining product_id + serialized modifiers */
+  /** Unique key based on product_id */
   cart_key: string;
   product_id: string;
   product_name: string;
   quantity: number;
   base_price: number;
-  modifiers: OrderItemModifiers;
   item_total: number;
 }
 

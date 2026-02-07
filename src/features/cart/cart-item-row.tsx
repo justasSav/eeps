@@ -9,14 +9,6 @@ export function CartItemRow({ item }: { item: CartItem }) {
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const removeItem = useCartStore((s) => s.removeItem);
 
-  const modifierSummary = Object.entries(item.modifiers)
-    .map(([key, val]) => {
-      if (Array.isArray(val)) return val.length > 0 ? `${key}: ${val.join(", ")}` : null;
-      return val ? `${key}: ${val}` : null;
-    })
-    .filter(Boolean)
-    .join(" · ");
-
   return (
     <div className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3">
       <div className="flex-1">
@@ -26,9 +18,6 @@ export function CartItemRow({ item }: { item: CartItem }) {
             {formatPrice(item.item_total)}
           </span>
         </div>
-        {modifierSummary && (
-          <p className="mt-0.5 text-xs text-gray-500">{modifierSummary}</p>
-        )}
         <div className="mt-2 flex items-center gap-2">
           <button
             onClick={() => updateQuantity(item.cart_key, item.quantity - 1)}
