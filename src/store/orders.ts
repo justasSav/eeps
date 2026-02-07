@@ -59,7 +59,6 @@ export const useOrderStore = create<OrderStoreState & OrderStoreActions>()(
             product_name: item.product_name,
             quantity: item.quantity,
             base_price: item.base_price,
-            modifiers: item.modifiers,
             item_total: item.item_total,
           })),
           total_amount: params.totalAmount,

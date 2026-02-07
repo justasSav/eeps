@@ -8,10 +8,10 @@ import { Plus } from "lucide-react";
 
 interface ProductCardProps {
   product: Product;
-  onCustomize: (product: Product) => void;
+  onAdd: (product: Product) => void;
 }
 
-export function ProductCard({ product, onCustomize }: ProductCardProps) {
+export function ProductCard({ product, onAdd }: ProductCardProps) {
   return (
     <div className="flex gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
       {product.image_url && (
@@ -48,7 +48,7 @@ export function ProductCard({ product, onCustomize }: ProductCardProps) {
           )}
         </div>
         <div className="mt-2 flex justify-end">
-          <Button size="sm" onClick={() => onCustomize(product)}>
+          <Button size="sm" onClick={() => onAdd(product)}>
             <Plus className="h-4 w-4" />
             Add
           </Button>

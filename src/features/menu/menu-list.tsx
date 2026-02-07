@@ -5,7 +5,7 @@ import type { Category, Product } from "@/types";
 import { getMenu } from "@/services/menu";
 import { CategoryFilter } from "./category-filter";
 import { ProductCard } from "./product-card";
-import { ProductCustomizer } from "@/features/customizer/product-customizer";
+import { useCartStore } from "@/store/cart";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -14,7 +14,16 @@ const categories: Category[] = getMenu();
 export function MenuList() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const addItem = useCartStore((s) => s.addItem);
+
+  function handleAdd(product: Product) {
+    addItem({
+      product_id: product.id,
+      product_name: product.name,
+      base_price: product.base_price,
+      item_total: product.base_price,
+    });
+  }
 
   const filteredCategories = categories
     .filter((cat) => !activeCategory || cat.id === activeCategory)
@@ -55,7 +64,7 @@ export function MenuList() {
               <ProductCard
                 key={product.id}
                 product={product}
-                onCustomize={setSelectedProduct}
+                onAdd={handleAdd}
               />
             ))}
           </div>
@@ -64,14 +73,6 @@ export function MenuList() {
 
       {filteredCategories.length === 0 && (
         <p className="py-8 text-center text-gray-500">No items found.</p>
-      )}
-
-      {/* Product customizer drawer */}
-      {selectedProduct && (
-        <ProductCustomizer
-          product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-        />
       )}
     </div>
   );
