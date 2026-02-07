@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import type { Order, OrderStatus } from "@/types";
-import { fetchActiveOrders, updateOrderStatus } from "@/services/orders";
+import type { OrderStatus } from "@/types";
+import { useOrderStore } from "@/store/orders";
 import { formatPrice } from "@/lib/utils";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { Loader } from "@/components/shared/loader";
 import { Button } from "@/components/ui/button";
-import { useRealtime } from "@/hooks/useRealtime";
 import { RefreshCw } from "lucide-react";
+import { useState } from "react";
 
 const nextStatus: Partial<Record<OrderStatus, OrderStatus>> = {
   CREATED: "ACCEPTED",
@@ -25,67 +23,29 @@ const nextLabel: Partial<Record<OrderStatus, string>> = {
 };
 
 export function AdminDashboard() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState<string | null>(null);
+  const orders = useOrderStore((s) => s.getActiveOrders());
+  const updateStatus = useOrderStore((s) => s.updateOrderStatus);
+  const [, setTick] = useState(0);
 
-  const loadOrders = useCallback(() => {
-    setLoading(true);
-    fetchActiveOrders()
-      .then(setOrders)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+  function refresh() {
+    setTick((t) => t + 1);
+  }
 
-  useEffect(() => {
-    loadOrders();
-  }, [loadOrders]);
-
-  // Listen for realtime updates to reload the order list
-  const handleRealtimeUpdate = useCallback(() => {
-    loadOrders();
-  }, [loadOrders]);
-
-  useRealtime("orders", null, handleRealtimeUpdate);
-
-  async function handleAdvance(orderId: string, currentStatus: OrderStatus) {
+  function handleAdvance(orderId: string, currentStatus: OrderStatus) {
     const next = nextStatus[currentStatus];
     if (!next) return;
-
-    setUpdating(orderId);
-    try {
-      await updateOrderStatus(orderId, next);
-      setOrders((prev) =>
-        prev
-          .map((o) => (o.id === orderId ? { ...o, status: next } : o))
-          .filter((o) => o.status !== "COMPLETED")
-      );
-    } catch (err) {
-      console.error("Failed to update order:", err);
-    } finally {
-      setUpdating(null);
-    }
+    updateStatus(orderId, next);
   }
 
-  async function handleCancel(orderId: string) {
-    setUpdating(orderId);
-    try {
-      await updateOrderStatus(orderId, "CANCELLED");
-      setOrders((prev) => prev.filter((o) => o.id !== orderId));
-    } catch (err) {
-      console.error("Failed to cancel order:", err);
-    } finally {
-      setUpdating(null);
-    }
+  function handleCancel(orderId: string) {
+    updateStatus(orderId, "CANCELLED");
   }
-
-  if (loading) return <Loader />;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
-        <Button variant="outline" size="sm" onClick={loadOrders}>
+        <Button variant="outline" size="sm" onClick={refresh}>
           <RefreshCw className="h-4 w-4" />
           Refresh
         </Button>
@@ -103,7 +63,7 @@ export function AdminDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <span className="font-semibold text-gray-900">
-                #{order.id.slice(0, 8).toUpperCase()}
+                Order #{order.id}
               </span>
               <span className="ml-2 text-xs text-gray-500">
                 {order.fulfillment_type === "delivery"
@@ -157,7 +117,6 @@ export function AdminDashboard() {
                 variant="destructive"
                 size="sm"
                 onClick={() => handleCancel(order.id)}
-                disabled={updating === order.id}
               >
                 Cancel
               </Button>
@@ -165,7 +124,6 @@ export function AdminDashboard() {
                 <Button
                   size="sm"
                   onClick={() => handleAdvance(order.id, order.status)}
-                  disabled={updating === order.id}
                 >
                   {nextLabel[order.status]}
                 </Button>

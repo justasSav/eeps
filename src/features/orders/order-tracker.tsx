@@ -1,12 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import type { Order, OrderStatus } from "@/types";
-import { fetchOrder } from "@/services/orders";
-import { useRealtime } from "@/hooks/useRealtime";
+import type { OrderStatus } from "@/types";
+import { useOrderStore } from "@/store/orders";
 import { formatPrice } from "@/lib/utils";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { Loader } from "@/components/shared/loader";
 import { CheckCircle2 } from "lucide-react";
 
 const statusSteps: OrderStatus[] = [
@@ -18,28 +15,8 @@ const statusSteps: OrderStatus[] = [
 ];
 
 export function OrderTracker({ orderId }: { orderId: string }) {
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
+  const order = useOrderStore((s) => s.getOrder(orderId));
 
-  useEffect(() => {
-    fetchOrder(orderId)
-      .then(setOrder)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [orderId]);
-
-  const handleRealtimeUpdate = useCallback(
-    (payload: Record<string, unknown>) => {
-      setOrder((prev) =>
-        prev ? { ...prev, status: payload.status as OrderStatus } : prev
-      );
-    },
-    []
-  );
-
-  useRealtime("orders", { column: "id", value: orderId }, handleRealtimeUpdate);
-
-  if (loading) return <Loader />;
   if (!order) {
     return (
       <p className="py-8 text-center text-gray-500">Order not found.</p>
@@ -54,7 +31,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
       <div className="text-center">
         <h1 className="text-xl font-bold text-gray-900">Order Tracking</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Order #{order.id.slice(0, 8).toUpperCase()}
+          Order #{order.id}
         </p>
         <div className="mt-2">
           <StatusBadge status={order.status} />
