@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cart";
-import { submitOrder } from "@/services/orders";
+import { useOrderStore } from "@/store/orders";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ export function CheckoutForm() {
   const items = useCartStore((s) => s.items);
   const getTotal = useCartStore((s) => s.getTotal);
   const clearCart = useCartStore((s) => s.clearCart);
+  const submitOrder = useOrderStore((s) => s.submitOrder);
 
   const [fulfillment, setFulfillment] = useState<FulfillmentType>("pickup");
   const [phone, setPhone] = useState("");
@@ -23,10 +24,9 @@ export function CheckoutForm() {
   const [postalCode, setPostalCode] = useState("");
   const [addressNotes, setAddressNotes] = useState("");
   const [notes, setNotes] = useState("");
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (items.length === 0) return;
     if (!phone.trim()) {
@@ -38,30 +38,22 @@ export function CheckoutForm() {
       return;
     }
 
-    setSubmitting(true);
     setError(null);
 
-    try {
-      const orderId = await submitOrder({
-        userId: "guest",
-        items,
-        fulfillmentType: fulfillment,
-        deliveryAddress:
-          fulfillment === "delivery"
-            ? { street, city, postal_code: postalCode, notes: addressNotes }
-            : null,
-        contactPhone: phone,
-        notes,
-        totalAmount: getTotal(),
-      });
+    const orderCode = submitOrder({
+      items,
+      fulfillmentType: fulfillment,
+      deliveryAddress:
+        fulfillment === "delivery"
+          ? { street, city, postal_code: postalCode, notes: addressNotes }
+          : null,
+      contactPhone: phone,
+      notes,
+      totalAmount: getTotal(),
+    });
 
-      clearCart();
-      router.push(`/tracking?id=${orderId}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to submit order.");
-    } finally {
-      setSubmitting(false);
-    }
+    clearCart();
+    router.push(`/tracking?id=${orderCode}`);
   }
 
   return (
@@ -165,8 +157,8 @@ export function CheckoutForm() {
         <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</p>
       )}
 
-      <Button type="submit" className="w-full" size="lg" disabled={submitting}>
-        {submitting ? "Placing Order..." : "Place Order"}
+      <Button type="submit" className="w-full" size="lg">
+        Place Order
       </Button>
     </form>
   );

@@ -1,27 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import type { Order } from "@/types";
-import { fetchUserOrders } from "@/services/orders";
+import { useOrderStore } from "@/store/orders";
 import { formatPrice } from "@/lib/utils";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { Loader } from "@/components/shared/loader";
 import { ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function OrderHistory() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchUserOrders("guest")
-      .then(setOrders)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <Loader />;
+  const orders = useOrderStore((s) => s.getAllOrders());
 
   if (orders.length === 0) {
     return (
@@ -51,7 +38,7 @@ export function OrderHistory() {
         >
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-900">
-              #{order.id.slice(0, 8).toUpperCase()}
+              Order #{order.id}
             </span>
             <StatusBadge status={order.status} />
           </div>

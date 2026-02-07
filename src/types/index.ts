@@ -65,7 +65,6 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
-  user_id: string;
   fulfillment_type: FulfillmentType;
   status: OrderStatus;
   delivery_address: DeliveryAddress | null;

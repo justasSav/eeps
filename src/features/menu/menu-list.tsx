@@ -1,30 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { Category, Product } from "@/types";
-import { fetchMenu } from "@/services/menu";
+import { getMenu } from "@/services/menu";
 import { CategoryFilter } from "./category-filter";
 import { ProductCard } from "./product-card";
 import { ProductCustomizer } from "@/features/customizer/product-customizer";
-import { Loader } from "@/components/shared/loader";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
+const categories: Category[] = getMenu();
+
 export function MenuList() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
-  useEffect(() => {
-    fetchMenu()
-      .then(setCategories)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <Loader />;
 
   const filteredCategories = categories
     .filter((cat) => !activeCategory || cat.id === activeCategory)
