@@ -22,10 +22,11 @@ run_sql() {
   local label="$1"
   local sql="$2"
   echo "=== $label ==="
+  PAYLOAD=$(jq -n --arg q "$sql" '{"query": $q}')
   RESULT=$(curl -s -X POST "$API" \
     -H "$AUTH" \
     -H "Content-Type: application/json" \
-    -d "{\"query\": \"$sql\"}")
+    -d "$PAYLOAD")
   echo "$RESULT"
   echo ""
 }
@@ -118,7 +119,7 @@ ALTER TABLE modifier_options ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 
-DO \$\$ BEGIN
+DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Menu is publicly readable') THEN
     CREATE POLICY "Menu is publicly readable" ON categories FOR SELECT USING (true);
   END IF;
@@ -145,15 +146,15 @@ DO \$\$ BEGIN
     CREATE POLICY "Users can create own order items" ON order_items FOR INSERT
       WITH CHECK (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_items.order_id AND orders.user_id = auth.uid()));
   END IF;
-END \$\$;
+END $$;
 
 CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS \$t\$
+RETURNS TRIGGER AS $t$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-\$t\$ LANGUAGE plpgsql;
+$t$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS orders_updated_at ON orders;
 CREATE TRIGGER orders_updated_at

@@ -67,6 +67,16 @@ The Next.js app is configured with `output: "export"` for static generation, and
 - Order tracking by 3-digit code
 - Admin dashboard with demo login authentication
 
+## Screenshots
+
+| Home / Menu | Cart | Checkout |
+|:-----------:|:----:|:--------:|
+| ![Home](screenshots/2026-02-08-17/01-home-menu.png) | ![Cart](screenshots/2026-02-08-17/02-cart.png) | ![Checkout](screenshots/2026-02-08-17/03-checkout.png) |
+
+| Orders | Tracking | Admin Login |
+|:------:|:--------:|:-----------:|
+| ![Orders](screenshots/2026-02-08-17/04-orders.png) | ![Tracking](screenshots/2026-02-08-17/05-tracking.png) | ![Admin](screenshots/2026-02-08-17/06-admin.png) |
+
 ## Admin Area
 
 The admin dashboard is available at [/admin](https://justassav.github.io/eeps/admin). It is the staff-facing control panel for processing customer orders from arrival to completion.
