@@ -171,12 +171,15 @@ describe('useOrderStore', () => {
       expect(orders[1].id).toBe('uuid-001');
     });
 
-    it('sets error on failure', async () => {
+    it('falls back to local order on Supabase failure', async () => {
       vi.mocked(submitOrderToSupabase).mockRejectedValue(new Error('Network error'));
-      await expect(
-        useOrderStore.getState().submitOrder(sampleOrderParams)
-      ).rejects.toThrow('Network error');
-      expect(useOrderStore.getState().error).toBe('Network error');
+      const id = await useOrderStore.getState().submitOrder(sampleOrderParams);
+      // Should return a 3-digit local ID
+      expect(id).toMatch(/^\d{3}$/);
+      const order = useOrderStore.getState().orders[0];
+      expect(order.status).toBe('CREATED');
+      expect(order.fulfillment_type).toBe('pickup');
+      expect(order.items[0].product_name).toBe('Margarita');
     });
   });
 

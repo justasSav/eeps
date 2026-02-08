@@ -135,7 +135,8 @@ export async function fetchUserOrders(): Promise<Order[]> {
     .eq("user_id", session.user.id)
     .order("created_at", { ascending: false });
 
-  if (error || !orderRows) return [];
+  if (error) throw new Error(`Failed to fetch user orders: ${error.message}`);
+  if (!orderRows) return [];
 
   const orders: Order[] = [];
   for (const row of orderRows) {
@@ -189,7 +190,8 @@ export async function fetchAllOrders(): Promise<Order[]> {
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error || !orderRows) return [];
+  if (error) throw new Error(`Failed to fetch all orders: ${error.message}`);
+  if (!orderRows) return [];
 
   const orders: Order[] = [];
   for (const row of orderRows) {
