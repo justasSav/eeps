@@ -24,6 +24,7 @@ export function MenuList() {
     return item ? item.quantity : 0;
   }
   const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const visibleSections = useRef<Set<string>>(new Set());
   const isScrollingTo = useRef(false);
 
   function handleAdd(product: Product) {
@@ -60,19 +61,28 @@ export function MenuList() {
     const sections = Array.from(sectionRefs.current.entries());
     if (sections.length === 0) return;
 
+    visibleSections.current.clear();
+
     const observer = new IntersectionObserver(
       (entries) => {
         if (isScrollingTo.current) return;
 
-        // Find the topmost visible section
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        // Update the set of currently visible sections
+        entries.forEach((entry) => {
+          const id = entry.target.getAttribute("data-category-id");
+          if (!id) return;
+          if (entry.isIntersecting) {
+            visibleSections.current.add(id);
+          } else {
+            visibleSections.current.delete(id);
+          }
+        });
 
-        if (visible.length > 0) {
-          const id = visible[0].target.getAttribute("data-category-id");
-          if (id) setActiveCategory(id);
-        }
+        // Pick the topmost visible section in menu order
+        const topmost = categories.find((c) =>
+          visibleSections.current.has(c.id)
+        );
+        if (topmost) setActiveCategory(topmost.id);
       },
       {
         rootMargin: "-120px 0px -60% 0px",
