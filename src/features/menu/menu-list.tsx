@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import type { Category, Product } from "@/types";
 import { getMenu } from "@/services/menu";
 import { CategoryFilter } from "./category-filter";
@@ -12,9 +12,13 @@ import { Input } from "@/components/ui/input";
 const categories: Category[] = getMenu();
 
 export function MenuList() {
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>(
+    categories[0]?.id ?? null
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const addItem = useCartStore((s) => s.addItem);
+  const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const isScrollingTo = useRef(false);
 
   function handleAdd(product: Product) {
     addItem({
@@ -25,8 +29,56 @@ export function MenuList() {
     });
   }
 
+  // Scroll to a category section when a pill is clicked
+  const scrollToCategory = useCallback((categoryId: string) => {
+    const el = sectionRefs.current.get(categoryId);
+    if (!el) return;
+
+    isScrollingTo.current = true;
+    setActiveCategory(categoryId);
+
+    // Offset for navbar (56px) + sticky category bar (~52px)
+    const offset = 120;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+
+    window.scrollTo({ top, behavior: "smooth" });
+
+    // Reset the scrolling flag after animation completes
+    setTimeout(() => {
+      isScrollingTo.current = false;
+    }, 800);
+  }, []);
+
+  // Track which category is currently in view using IntersectionObserver
+  useEffect(() => {
+    const sections = Array.from(sectionRefs.current.entries());
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (isScrollingTo.current) return;
+
+        // Find the topmost visible section
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+        if (visible.length > 0) {
+          const id = visible[0].target.getAttribute("data-category-id");
+          if (id) setActiveCategory(id);
+        }
+      },
+      {
+        rootMargin: "-120px 0px -60% 0px",
+        threshold: 0,
+      }
+    );
+
+    sections.forEach(([, el]) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [searchQuery]);
+
   const filteredCategories = categories
-    .filter((cat) => !activeCategory || cat.id === activeCategory)
     .map((cat) => ({
       ...cat,
       products: cat.products.filter((p) =>
@@ -48,16 +100,24 @@ export function MenuList() {
         />
       </div>
 
-      {/* Category filter pills */}
-      <CategoryFilter
-        categories={categories}
-        activeId={activeCategory}
-        onSelect={setActiveCategory}
-      />
+      {/* Sticky category navigation */}
+      <div className="sticky top-14 z-40 -mx-4 bg-gray-50 px-4 py-2">
+        <CategoryFilter
+          categories={categories}
+          activeId={activeCategory}
+          onSelect={scrollToCategory}
+        />
+      </div>
 
       {/* Products grouped by category */}
       {filteredCategories.map((cat) => (
-        <section key={cat.id}>
+        <section
+          key={cat.id}
+          data-category-id={cat.id}
+          ref={(el) => {
+            if (el) sectionRefs.current.set(cat.id, el);
+          }}
+        >
           <h2 className="mb-2 text-lg font-bold text-gray-900">{cat.name}</h2>
           <div className="divide-y divide-gray-200">
             {cat.products.map((product) => (

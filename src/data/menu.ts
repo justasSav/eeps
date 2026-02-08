@@ -171,46 +171,9 @@ export const hardcodedMenu: Category[] = [
     ],
   },
   {
-    id: "cat-mesainiai",
-    name: "Mėsainiai",
-    sort_order: 3,
-    products: [
-      {
-        id: "prod-mesainis-vistiena",
-        category_id: "cat-mesainiai",
-        name: "Mėsainis su vištiena",
-        description: "Mėsainis su vištienos kotletu.",
-        base_price: 400,
-        image_url: "https://images.unsplash.com/photo-1568901346375-23c9450f58cd?w=200&h=200&fit=crop",
-        is_available: true,
-        dietary_tags: [],
-      },
-      {
-        id: "prod-mesainis-jautiena",
-        category_id: "cat-mesainiai",
-        name: "Mėsainis su jautiena",
-        description: "Mėsainis su jautienos kotletu.",
-        base_price: 500,
-        image_url: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=200&h=200&fit=crop",
-        is_available: true,
-        dietary_tags: [],
-      },
-      {
-        id: "prod-mesainis-vegetariskas",
-        category_id: "cat-mesainiai",
-        name: "Vegetariškas mėsainis",
-        description: "Mėsainis su daržovių kotletu.",
-        base_price: 500,
-        image_url: "https://images.unsplash.com/photo-1568901346375-23c9450f58cd?w=200&h=200&fit=crop",
-        is_available: true,
-        dietary_tags: ["vegetariškas"],
-      },
-    ],
-  },
-  {
     id: "cat-kiti-patiekalai",
     name: "Kiti patiekalai",
-    sort_order: 4,
+    sort_order: 3,
     products: [
       {
         id: "prod-vistienos-kepsneliai",
@@ -307,7 +270,7 @@ export const hardcodedMenu: Category[] = [
   {
     id: "cat-gerimai",
     name: "Gėrimai",
-    sort_order: 5,
+    sort_order: 4,
     products: [
       {
         id: "prod-coca-cola",
