@@ -23,10 +23,10 @@ Scaffold a new feature module in the EEPS ordering system.
    - Create `src/app/<route>/page.tsx`
    - Import and render the feature component
 
-5. **Add service functions** if the feature needs data access:
-   - Create or extend files in `src/services/`
-   - Use the Supabase client from `@/lib/supabase`
-   - Follow existing patterns (async functions returning typed data)
+5. **Add data or state** as appropriate:
+   - For static data: add to `src/data/` (follow the pattern in `src/data/menu.ts`)
+   - For client state: create or extend a Zustand store in `src/store/` (follow `store/cart.ts` or `store/orders.ts` patterns, including `persist` middleware for localStorage)
+   - For data access functions: add to `src/services/`
 
 6. **Add types** if needed:
    - Extend `src/types/index.ts` with new interfaces
@@ -39,4 +39,4 @@ Scaffold a new feature module in the EEPS ordering system.
    - Run `npm run build`
    - Fix any TypeScript errors
 
-Follow all conventions from CLAUDE.md: prices as integers, mobile-first Tailwind, feature-based organization.
+Follow all conventions from CLAUDE.md: prices as integer cents (€), mobile-first Tailwind, feature-based organization, Lithuanian UI labels, `"use client"` on interactive components. No backend database — all state is client-side.

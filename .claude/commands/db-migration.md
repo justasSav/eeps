@@ -1,6 +1,8 @@
 # Database Migration
 
-Create a new SQL migration file for the EEPS database.
+Create a new SQL migration file for the EEPS database schema.
+
+> **Note:** The EEPS application currently runs entirely client-side with hardcoded data in `src/data/menu.ts` and Zustand stores persisted to localStorage. The Supabase backend has been removed. SQL migrations in `supabase/migrations/` serve as reference documentation for the original schema design and may be used if a database backend is re-introduced in the future.
 
 ## Arguments
 - $ARGUMENTS: Description of the schema change (e.g., "add loyalty_points column to orders" or "create promotions table")
@@ -14,7 +16,7 @@ Create a new SQL migration file for the EEPS database.
 3. **Write the SQL** following existing conventions:
    - Use `UUID` primary keys with `gen_random_uuid()` default
    - Use `TIMESTAMPTZ` for dates with `NOW()` default
-   - Use `INTEGER` for prices (pence, not pounds)
+   - Use `INTEGER` for prices (cents, not euros)
    - Add appropriate indexes for frequently queried columns
    - Enable RLS: `ALTER TABLE <table> ENABLE ROW LEVEL SECURITY;`
    - Add RLS policies matching the access pattern:
@@ -34,6 +36,9 @@ Create a new SQL migration file for the EEPS database.
 
 6. **If the change affects TypeScript types**, update `src/types/index.ts` accordingly.
 
-7. **If the change affects services**, update the relevant files in `src/services/`.
+7. **If the change affects runtime data**, also update the relevant files:
+   - Menu data → `src/data/menu.ts`
+   - Order logic → `src/store/orders.ts`
+   - Cart logic → `src/store/cart.ts`
 
 8. **Verify the SQL syntax** is valid PostgreSQL.
