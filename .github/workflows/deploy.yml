@@ -4,8 +4,6 @@
 #
 # Prerequisites:
 #   1. Go to Settings > Pages > Source and select "GitHub Actions"
-#   2. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
-#      as repository secrets (Settings > Secrets and variables > Actions)
 
 name: CI & Deploy to GitHub Pages
 
@@ -101,8 +99,6 @@ jobs:
         run: npm run build
         env:
           PAGES_BASE_PATH: ${{ steps.setup_pages.outputs.base_path }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
