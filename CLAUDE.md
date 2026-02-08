@@ -101,6 +101,18 @@ eeps/
 
 No environment variables are required. The app runs entirely client-side with hardcoded menu data and localStorage persistence.
 
+### GitHub CLI (`gh`)
+
+When working with GitHub issues or pull requests, install the GitHub CLI first:
+
+```bash
+# Fix /tmp permissions if needed (common in containerized environments)
+chmod 1777 /tmp
+apt-get update -qq && apt-get install -y -qq gh
+```
+
+The `gh` command is used to fetch issue details (`gh api repos/<owner>/<repo>/issues/<number>`), create PRs, and interact with GitHub. Always install it as a prerequisite before any GitHub issue-related work.
+
 ## Tech Stack
 
 | Layer | Technology | Notes |

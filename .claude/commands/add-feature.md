@@ -7,6 +7,13 @@ Scaffold a new feature module in the EEPS ordering system.
 
 ## Instructions
 
+0. **If working from a GitHub issue**, install the GitHub CLI and fetch the issue details first:
+   ```bash
+   chmod 1777 /tmp && apt-get update -qq && apt-get install -y -qq gh
+   gh api repos/<owner>/<repo>/issues/<number>
+   ```
+   Use the issue description as the source of truth for requirements.
+
 1. **Parse the feature name** from the arguments. Create a kebab-case directory name.
 
 2. **Create the feature directory** at `src/features/<feature-name>/`.

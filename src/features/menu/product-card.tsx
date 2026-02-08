@@ -16,14 +16,16 @@ export function ProductCard({ product, onAdd, quantity = 0 }: ProductCardProps) 
   return (
     <div
       className={cn(
-        "flex gap-4 py-4",
-        quantity > 0 && "border-l-4 border-l-blue-500 pl-3"
+        "flex gap-4 py-4 pl-3",
+        quantity > 0
+          ? "border-l-4 border-l-blue-500"
+          : "border-l-4 border-l-transparent"
       )}
     >
       <div className="flex flex-1 flex-col">
         <h3 className="text-base font-bold text-gray-900">
           {quantity > 0 && (
-            <span className="text-blue-600">{quantity} × </span>
+            <span className="text-blue-500">{quantity} × </span>
           )}
           {product.name}
         </h3>

@@ -7,6 +7,13 @@ Trace and diagnose issues in the order submission, tracking, or admin management
 
 ## Instructions
 
+0. **If working from a GitHub issue**, install the GitHub CLI and fetch the issue details first:
+   ```bash
+   chmod 1777 /tmp && apt-get update -qq && apt-get install -y -qq gh
+   gh api repos/<owner>/<repo>/issues/<number>
+   ```
+   Use the issue description as the source of truth for requirements.
+
 1. **Identify which part of the order flow is affected.** The full flow is:
    - Menu → Cart → Checkout → Order Store → Tracking/Admin
 
