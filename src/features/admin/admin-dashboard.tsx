@@ -2,10 +2,12 @@
 
 import type { OrderStatus } from "@/types";
 import { useOrderStore } from "@/store/orders";
+import { useAuthStore } from "@/store/auth";
 import { formatPrice } from "@/lib/utils";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { AdminLogin } from "@/features/admin/admin-login";
+import { RefreshCw, LogOut } from "lucide-react";
 import { useMemo, useState } from "react";
 
 const activeStatuses: OrderStatus[] = [
@@ -30,6 +32,8 @@ const nextLabel: Partial<Record<OrderStatus, string>> = {
 };
 
 export function AdminDashboard() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const logout = useAuthStore((s) => s.logout);
   const allOrders = useOrderStore((s) => s.orders);
   const updateStatus = useOrderStore((s) => s.updateOrderStatus);
   const orders = useMemo(
@@ -58,14 +62,24 @@ export function AdminDashboard() {
     updateStatus(orderId, "CANCELLED");
   }
 
+  if (!isAuthenticated) {
+    return <AdminLogin />;
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">Administratoriaus skydelis</h1>
-        <Button variant="outline" size="sm" onClick={refresh}>
-          <RefreshCw className="h-4 w-4" />
-          Atnaujinti
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={refresh}>
+            <RefreshCw className="h-4 w-4" />
+            Atnaujinti
+          </Button>
+          <Button variant="ghost" size="sm" onClick={logout}>
+            <LogOut className="h-4 w-4" />
+            Atsijungti
+          </Button>
+        </div>
       </div>
 
       {orders.length === 0 && (

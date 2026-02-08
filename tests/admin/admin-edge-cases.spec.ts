@@ -1,7 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { seedOrders, createOrder } from "../helpers/seed-orders";
+import { seedOrders, createOrder, loginAsAdmin } from "../helpers/seed-orders";
 
 async function goToAdmin(page: import("@playwright/test").Page) {
+  const url = page.url();
+  if (url === "about:blank" || !url.startsWith("http")) {
+    await page.goto("/");
+  }
+  await loginAsAdmin(page);
   await page.goto("/admin");
   await page.waitForSelector("text=Administratoriaus skydelis");
 }

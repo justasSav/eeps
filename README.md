@@ -10,7 +10,7 @@ Live site: [https://justassav.github.io/eeps/](https://justassav.github.io/eeps/
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS 4 (mobile-first)
 - **State:** Zustand with localStorage persistence
-- **Backend:** Supabase (PostgreSQL, Auth, Realtime)
+- **Backend:** None (client-side localStorage)
 - **Icons:** lucide-react
 - **Deployment:** GitHub Pages via GitHub Actions
 
@@ -19,7 +19,6 @@ Live site: [https://justassav.github.io/eeps/](https://justassav.github.io/eeps/
 ### Prerequisites
 
 - Node.js 18+
-- A [Supabase](https://supabase.com/) project
 
 ### Installation
 
@@ -29,14 +28,7 @@ cd eeps
 npm install
 ```
 
-### Environment Variables
-
-Copy `.env.example` to `.env.local` and fill in your Supabase credentials:
-
-```
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-```
+No environment variables are required. The app runs entirely client-side with hardcoded menu data and localStorage persistence.
 
 ### Development
 
@@ -63,39 +55,52 @@ The project is configured to deploy automatically to GitHub Pages on every push 
 ### Setup
 
 1. Go to your repository **Settings > Pages > Source** and select **GitHub Actions**
-2. Add repository secrets under **Settings > Secrets and variables > Actions**:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-3. Push to `main` -- the workflow in `.github/workflows/deploy.yml` builds and deploys the static site
+2. Push to `main` -- the workflow in `.github/workflows/deploy.yml` builds and deploys the static site
 
 The Next.js app is configured with `output: "export"` for static generation, and the base path is set automatically by the GitHub Pages action.
 
 ## Features
 
 - Menu browsing with search and category filtering
-- Item customization (pizza sizes/toppings, kebab bread/salad/sauce)
-- Shopping cart with modifier-aware deduplication
-- Checkout with delivery and collection options
-- Real-time order tracking via Supabase Realtime
-- Admin dashboard for order management
+- Shopping cart with product deduplication
+- Checkout with delivery and pickup options
+- Order tracking by 3-digit code
+- Admin dashboard with demo login authentication
 
 ## Admin Area
 
 The admin dashboard is available at [/admin](https://justassav.github.io/eeps/admin). It is the staff-facing control panel for processing customer orders from arrival to completion.
 
+**Authentication:** The admin area is protected by a login gate. Use the demo credentials to access it:
+
+| Field | Value |
+|-------|-------|
+| **Username** | `demo` |
+| **Password** | `demo` |
+
+The session is persisted in localStorage, so you stay logged in across page reloads. Use the "Atsijungti" (Logout) button in the dashboard header to end the session.
+
 **Purpose:** Give kitchen and counter staff a single screen to monitor, process, and fulfil all incoming orders.
 
 **Main features:**
 
+- **Login gate** — demo admin user authentication (username: `demo`, password: `demo`)
 - **Order queue** — view all active orders (non-completed, non-cancelled), sorted oldest-first so the most urgent appear at the top
 - **Order details** — each card shows the order ID, fulfillment type (delivery or collection), timestamp, contact phone, delivery address, line items with prices, optional customer notes, and the total amount
 - **Status progression** — advance an order one step at a time through the lifecycle: `CREATED → ACCEPTED → PREPARING → READY → COMPLETED`
 - **Order cancellation** — cancel any active order at any stage
 - **Manual refresh** — refresh the order list on demand
+- **Logout** — end the admin session and return to the login screen
 
-## Database
+## Data Storage
 
-SQL migrations are in `supabase/migrations/`. The schema includes tables for categories, products, modifier groups, modifier options, orders, and order items -- all with row-level security.
+All data is stored client-side in localStorage using Zustand stores with persist middleware. There is no backend database.
+
+- **Cart:** `pizza-kebab-cart` localStorage key
+- **Orders:** `eeps-orders` localStorage key
+- **Admin auth:** `eeps-admin-auth` localStorage key
+
+SQL migrations in `supabase/migrations/` document the original schema design but are not used by the running application.
 
 **Order status lifecycle:** `CREATED -> ACCEPTED -> PREPARING -> READY -> COMPLETED` (or `CANCELLED`)
 

@@ -1,5 +1,28 @@
 import type { Page } from "@playwright/test";
 
+/**
+ * Set admin auth state in localStorage so the admin dashboard is accessible.
+ * Must be called after navigating to any page (so localStorage is available).
+ */
+export async function loginAsAdmin(page: Page) {
+  await page.evaluate(() => {
+    const store = {
+      state: { isAuthenticated: true },
+      version: 0,
+    };
+    localStorage.setItem("eeps-admin-auth", JSON.stringify(store));
+  });
+}
+
+/**
+ * Log in via the admin login form UI.
+ */
+export async function loginViaForm(page: Page, username = "demo", password = "demo") {
+  await page.getByLabel("Prisijungimo vardas").fill(username);
+  await page.getByLabel("Slaptažodis").fill(password);
+  await page.getByRole("button", { name: "Prisijungti" }).click();
+}
+
 export interface SeedOrder {
   id: string;
   status: "CREATED" | "ACCEPTED" | "PREPARING" | "READY" | "COMPLETED" | "CANCELLED";
