@@ -1,3 +1,6 @@
-// Supabase client removed — all data is now hardcoded locally.
-// This file is kept as a placeholder to avoid broken imports during transition.
-export {};
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
