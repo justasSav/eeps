@@ -114,6 +114,53 @@ npx playwright install --with-deps chromium
 
 ---
 
+## Screenshot Convention
+
+All screenshots **must** be saved under the `screenshots/` directory using a timestamped folder pattern:
+
+```
+screenshots/yyyy-mm-dd-hh/
+```
+
+- **yyyy** — 4-digit year
+- **mm** — 2-digit month (zero-padded)
+- **dd** — 2-digit day (zero-padded)
+- **hh** — 2-digit hour (zero-padded, 24-hour)
+
+Example: `screenshots/2026-02-08-17/01-home-menu.png`
+
+### Naming files inside the folder
+
+Use a numbered prefix + descriptive name:
+- `01-home-menu.png`
+- `02-cart.png`
+- `03-checkout.png`
+- `04-orders.png`
+- `05-tracking.png`
+- `06-admin.png`
+
+### Automated screenshot test
+
+Run the visual verification Playwright test to capture all key pages:
+
+```bash
+npx playwright test tests/visual/screenshots.spec.ts
+```
+
+This creates the timestamped folder automatically and saves full-page screenshots for every page.
+
+### MCP browser_screenshot
+
+When using the `browser_screenshot` MCP tool interactively, always save to the same pattern:
+
+```
+screenshots/yyyy-mm-dd-hh/<descriptive-name>.png
+```
+
+Screenshots can be committed and referenced inline in `README.md` for documentation. The README uses relative paths like `screenshots/2026-02-08-17/01-home-menu.png`.
+
+---
+
 ## Running Tests
 
 ### Full Test Run
@@ -122,6 +169,15 @@ Run all test suites sequentially against the deployed site:
 1. Start with Smoke Test to verify the site is up
 2. Proceed through each test suite in order
 3. Report results for each suite with pass/fail status
+
+### Visual Screenshot Run
+Capture screenshots of all pages for visual review:
+
+```bash
+npx playwright test tests/visual/screenshots.spec.ts
+```
+
+Screenshots are saved to `screenshots/yyyy-mm-dd-hh/`.
 
 ### Single Suite Run
 Run a specific test suite by name (e.g., "run the Cart Functionality Test").

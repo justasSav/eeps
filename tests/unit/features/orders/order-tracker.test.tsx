@@ -1,150 +1,182 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import type { Order } from '@/types';
+
+// Mock services to prevent Supabase calls
+vi.mock('@/services/orders', () => ({
+  submitOrderToSupabase: vi.fn(),
+  fetchOrder: vi.fn().mockResolvedValue(null),
+  fetchUserOrders: vi.fn().mockResolvedValue([]),
+  fetchAllOrders: vi.fn().mockResolvedValue([]),
+  updateOrderStatusInSupabase: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { OrderTracker } from '@/features/orders/order-tracker';
 import { useOrderStore } from '@/store/orders';
 
-const sampleOrderParams = {
-  items: [
-    {
-      cart_key: 'prod-margarita',
-      product_id: 'prod-margarita',
-      product_name: 'Margarita',
-      quantity: 2,
-      base_price: 800,
-      item_total: 1600,
-    },
-  ],
-  fulfillmentType: 'pickup' as const,
-  deliveryAddress: null,
-  contactPhone: '+37060000000',
-  notes: '',
-  totalAmount: 1600,
-};
+function makeOrder(overrides: Partial<Order> = {}): Order {
+  return {
+    id: 'abcd1234-0000-0000-0000-000000000001',
+    fulfillment_type: 'pickup',
+    status: 'CREATED',
+    delivery_address: null,
+    contact_phone: '+37060000000',
+    items: [
+      {
+        product_id: 'prod-margarita',
+        product_name: 'Margarita',
+        quantity: 2,
+        base_price: 800,
+        item_total: 1600,
+      },
+    ],
+    total_amount: 1600,
+    notes: '',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    ...overrides,
+  };
+}
 
 describe('OrderTracker', () => {
   beforeEach(() => {
-    localStorage.clear();
-    useOrderStore.setState({ orders: [] });
+    useOrderStore.setState({ orders: [], loading: false, error: null });
   });
 
-  it('not found state', () => {
-    render(<OrderTracker orderId="000" />);
-    expect(screen.getByText('Užsakymas nerastas.')).toBeInTheDocument();
+  it('not found state', async () => {
+    render(<OrderTracker orderId="nonexistent" />);
+    expect(await screen.findByText('Užsakymas nerastas.')).toBeInTheDocument();
   });
 
-  it('shows order ID in header', () => {
-    const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-    render(<OrderTracker orderId={code} />);
-    expect(screen.getByText(`Užsakymas #${code}`)).toBeInTheDocument();
+  it('shows order ID in header', async () => {
+    const order = makeOrder();
+    useOrderStore.setState({ orders: [order] });
+    render(<OrderTracker orderId={order.id} />);
+    // Component shows order.id.slice(0, 8) = 'abcd1234'
+    expect(await screen.findByText('Užsakymas #abcd1234')).toBeInTheDocument();
   });
 
-  it('renders 5-step progress stepper', () => {
-    const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-    render(<OrderTracker orderId={code} />);
-    expect(screen.getByText('Užsakymas pateiktas')).toBeInTheDocument();
+  it('renders 5-step progress stepper', async () => {
+    const order = makeOrder();
+    useOrderStore.setState({ orders: [order] });
+    render(<OrderTracker orderId={order.id} />);
+    expect(await screen.findByText('Užsakymas pateiktas')).toBeInTheDocument();
     expect(screen.getByText('Užsakymas priimtas')).toBeInTheDocument();
     expect(screen.getByText('Ruošiamas')).toBeInTheDocument();
     expect(screen.getByText('Paruoštas')).toBeInTheDocument();
     expect(screen.getByText('Įvykdytas')).toBeInTheDocument();
   });
 
-  it('completed steps have checkmark (SVG icon)', () => {
-    const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-    useOrderStore.getState().updateOrderStatus(code, 'PREPARING');
-    const { container } = render(<OrderTracker orderId={code} />);
-    // Steps 0 (CREATED), 1 (ACCEPTED), 2 (PREPARING) should be completed
-    const completedCircles = container.querySelectorAll('.bg-orange-600');
-    expect(completedCircles.length).toBe(3);
+  it('completed steps have checkmark (SVG icon)', async () => {
+    const order = makeOrder({ status: 'PREPARING' });
+    useOrderStore.setState({ orders: [order] });
+    const { container } = render(<OrderTracker orderId={order.id} />);
+    // Wait for async getOrder to resolve and component to render
+    await waitFor(() => {
+      // Steps 0 (CREATED), 1 (ACCEPTED), 2 (PREPARING) should be completed
+      const completedCircles = container.querySelectorAll('.bg-orange-600');
+      expect(completedCircles.length).toBe(3);
+    });
   });
 
-  it('current step highlighted orange', () => {
-    const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-    render(<OrderTracker orderId={code} />);
-    const currentLabel = screen.getByText('Užsakymas pateiktas');
+  it('current step highlighted orange', async () => {
+    const order = makeOrder();
+    useOrderStore.setState({ orders: [order] });
+    render(<OrderTracker orderId={order.id} />);
+    const currentLabel = await screen.findByText('Užsakymas pateiktas');
     expect(currentLabel.className).toContain('text-orange-600');
     expect(currentLabel.className).toContain('font-semibold');
   });
 
-  it('future steps are gray', () => {
-    const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-    render(<OrderTracker orderId={code} />);
+  it('future steps are gray', async () => {
+    const order = makeOrder();
+    useOrderStore.setState({ orders: [order] });
+    render(<OrderTracker orderId={order.id} />);
+    await screen.findByText('Užsakymas pateiktas');
     const futureLabel = screen.getByText('Užsakymas priimtas');
     expect(futureLabel.className).toContain('text-gray-400');
   });
 
-  it('CANCELLED shows red alert', () => {
-    const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-    useOrderStore.getState().updateOrderStatus(code, 'CANCELLED');
-    render(<OrderTracker orderId={code} />);
-    expect(screen.getByText('Šis užsakymas buvo atšauktas.')).toBeInTheDocument();
+  it('CANCELLED shows red alert', async () => {
+    const order = makeOrder({ status: 'CANCELLED' });
+    useOrderStore.setState({ orders: [order] });
+    render(<OrderTracker orderId={order.id} />);
+    expect(await screen.findByText('Šis užsakymas buvo atšauktas.')).toBeInTheDocument();
   });
 
-  it('CANCELLED hides stepper', () => {
-    const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-    useOrderStore.getState().updateOrderStatus(code, 'CANCELLED');
-    render(<OrderTracker orderId={code} />);
+  it('CANCELLED hides stepper', async () => {
+    const order = makeOrder({ status: 'CANCELLED' });
+    useOrderStore.setState({ orders: [order] });
+    render(<OrderTracker orderId={order.id} />);
+    await screen.findByText('Šis užsakymas buvo atšauktas.');
     expect(screen.queryByText('Užsakymas pateiktas')).toBeNull();
   });
 
-  it('shows fulfillment type - pickup', () => {
-    const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-    render(<OrderTracker orderId={code} />);
-    expect(screen.getByText('Atsiėmimas')).toBeInTheDocument();
+  it('shows fulfillment type - pickup', async () => {
+    const order = makeOrder();
+    useOrderStore.setState({ orders: [order] });
+    render(<OrderTracker orderId={order.id} />);
+    expect(await screen.findByText('Atsiėmimas')).toBeInTheDocument();
   });
 
-  it('shows fulfillment type - delivery', () => {
-    const code = useOrderStore.getState().submitOrder({
-      ...sampleOrderParams,
-      fulfillmentType: 'delivery',
-      deliveryAddress: {
+  it('shows fulfillment type - delivery', async () => {
+    const order = makeOrder({
+      fulfillment_type: 'delivery',
+      delivery_address: {
         street: 'Gedimino pr. 1',
         city: 'Vilnius',
         postal_code: 'LT-01103',
         notes: '',
       },
     });
-    render(<OrderTracker orderId={code} />);
-    expect(screen.getByText('Pristatymas')).toBeInTheDocument();
+    useOrderStore.setState({ orders: [order] });
+    render(<OrderTracker orderId={order.id} />);
+    expect(await screen.findByText('Pristatymas')).toBeInTheDocument();
   });
 
-  it('shows phone', () => {
-    const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-    render(<OrderTracker orderId={code} />);
-    expect(screen.getByText('+37060000000')).toBeInTheDocument();
+  it('shows phone', async () => {
+    const order = makeOrder();
+    useOrderStore.setState({ orders: [order] });
+    render(<OrderTracker orderId={order.id} />);
+    expect(await screen.findByText('+37060000000')).toBeInTheDocument();
   });
 
-  it('shows address for delivery', () => {
-    const code = useOrderStore.getState().submitOrder({
-      ...sampleOrderParams,
-      fulfillmentType: 'delivery',
-      deliveryAddress: {
+  it('shows address for delivery', async () => {
+    const order = makeOrder({
+      fulfillment_type: 'delivery',
+      delivery_address: {
         street: 'Gedimino pr. 1',
         city: 'Vilnius',
         postal_code: 'LT-01103',
         notes: '',
       },
     });
-    render(<OrderTracker orderId={code} />);
-    expect(screen.getByText(/Gedimino pr\. 1/)).toBeInTheDocument();
+    useOrderStore.setState({ orders: [order] });
+    render(<OrderTracker orderId={order.id} />);
+    expect(await screen.findByText(/Gedimino pr\. 1/)).toBeInTheDocument();
     expect(screen.getByText(/Vilnius/)).toBeInTheDocument();
   });
 
-  it('hides address for pickup', () => {
-    const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-    render(<OrderTracker orderId={code} />);
+  it('hides address for pickup', async () => {
+    const order = makeOrder();
+    useOrderStore.setState({ orders: [order] });
+    render(<OrderTracker orderId={order.id} />);
+    await screen.findByText('Atsiėmimas');
     expect(screen.queryByText('Adresas:')).toBeNull();
   });
 
-  it('shows items with quantities', () => {
-    const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-    render(<OrderTracker orderId={code} />);
-    expect(screen.getByText('2x Margarita')).toBeInTheDocument();
+  it('shows items with quantities', async () => {
+    const order = makeOrder();
+    useOrderStore.setState({ orders: [order] });
+    render(<OrderTracker orderId={order.id} />);
+    expect(await screen.findByText('2x Margarita')).toBeInTheDocument();
   });
 
-  it('shows total', () => {
-    const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-    render(<OrderTracker orderId={code} />);
-    // Both item_total and total_amount are €16.00, so use getAllByText
+  it('shows total', async () => {
+    const order = makeOrder();
+    useOrderStore.setState({ orders: [order] });
+    render(<OrderTracker orderId={order.id} />);
+    await screen.findByText('2x Margarita');
     const priceElements = screen.getAllByText('€16.00');
     expect(priceElements.length).toBeGreaterThanOrEqual(1);
   });

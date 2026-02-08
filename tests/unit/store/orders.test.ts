@@ -1,5 +1,23 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { Order } from '@/types';
+
+// Mock @/services/orders to prevent Supabase calls
+vi.mock('@/services/orders', () => ({
+  submitOrderToSupabase: vi.fn(),
+  fetchOrder: vi.fn(),
+  fetchUserOrders: vi.fn(),
+  fetchAllOrders: vi.fn(),
+  updateOrderStatusInSupabase: vi.fn(),
+}));
+
 import { useOrderStore } from '@/store/orders';
+import {
+  submitOrderToSupabase,
+  fetchOrder,
+  fetchUserOrders,
+  fetchAllOrders,
+  updateOrderStatusInSupabase,
+} from '@/services/orders';
 
 const sampleCartItems = [
   {
@@ -21,55 +39,98 @@ const sampleOrderParams = {
   totalAmount: 1600,
 };
 
+function makeOrder(overrides: Partial<Order> = {}): Order {
+  return {
+    id: 'uuid-001',
+    fulfillment_type: 'pickup',
+    status: 'CREATED',
+    delivery_address: null,
+    contact_phone: '+37060000000',
+    items: [
+      {
+        product_id: 'prod-margarita',
+        product_name: 'Margarita',
+        quantity: 2,
+        base_price: 800,
+        item_total: 1600,
+      },
+    ],
+    total_amount: 1600,
+    notes: '',
+    created_at: '2026-01-15T10:00:00Z',
+    updated_at: '2026-01-15T10:00:00Z',
+    ...overrides,
+  };
+}
+
 function resetStore() {
-  useOrderStore.setState({ orders: [] });
+  useOrderStore.setState({ orders: [], loading: false, error: null });
 }
 
 describe('useOrderStore', () => {
   beforeEach(() => {
     localStorage.clear();
     resetStore();
+    vi.clearAllMocks();
   });
 
   describe('submitOrder', () => {
-    it('returns a 3-digit code', () => {
-      const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-      const num = parseInt(code, 10);
-      expect(num).toBeGreaterThanOrEqual(100);
-      expect(num).toBeLessThanOrEqual(999);
+    it('returns the order ID', async () => {
+      vi.mocked(submitOrderToSupabase).mockResolvedValue(makeOrder());
+      const id = await useOrderStore.getState().submitOrder(sampleOrderParams);
+      expect(id).toBe('uuid-001');
     });
 
-    it('creates order with CREATED status', () => {
-      const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-      const order = useOrderStore.getState().getOrder(code);
-      expect(order).not.toBeNull();
-      expect(order!.status).toBe('CREATED');
+    it('calls submitOrderToSupabase with params', async () => {
+      vi.mocked(submitOrderToSupabase).mockResolvedValue(makeOrder());
+      await useOrderStore.getState().submitOrder(sampleOrderParams);
+      expect(submitOrderToSupabase).toHaveBeenCalledWith(sampleOrderParams);
     });
 
-    it('sets timestamps', () => {
-      const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-      const order = useOrderStore.getState().getOrder(code)!;
+    it('creates order with CREATED status', async () => {
+      vi.mocked(submitOrderToSupabase).mockResolvedValue(makeOrder());
+      await useOrderStore.getState().submitOrder(sampleOrderParams);
+      const orders = useOrderStore.getState().orders;
+      expect(orders[0].status).toBe('CREATED');
+    });
+
+    it('sets timestamps', async () => {
+      vi.mocked(submitOrderToSupabase).mockResolvedValue(makeOrder());
+      await useOrderStore.getState().submitOrder(sampleOrderParams);
+      const order = useOrderStore.getState().orders[0];
       expect(new Date(order.created_at).getTime()).not.toBeNaN();
       expect(new Date(order.updated_at).getTime()).not.toBeNaN();
     });
 
-    it('copies items correctly', () => {
-      const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-      const order = useOrderStore.getState().getOrder(code)!;
+    it('copies items correctly', async () => {
+      vi.mocked(submitOrderToSupabase).mockResolvedValue(makeOrder());
+      await useOrderStore.getState().submitOrder(sampleOrderParams);
+      const order = useOrderStore.getState().orders[0];
       expect(order.items).toHaveLength(1);
       expect(order.items[0].product_name).toBe('Margarita');
       expect(order.items[0].quantity).toBe(2);
       expect(order.items[0].item_total).toBe(1600);
     });
 
-    it('stores fulfillment type', () => {
-      const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-      const order = useOrderStore.getState().getOrder(code)!;
+    it('stores fulfillment type', async () => {
+      vi.mocked(submitOrderToSupabase).mockResolvedValue(makeOrder());
+      await useOrderStore.getState().submitOrder(sampleOrderParams);
+      const order = useOrderStore.getState().orders[0];
       expect(order.fulfillment_type).toBe('pickup');
     });
 
-    it('stores delivery address for delivery orders', () => {
-      const code = useOrderStore.getState().submitOrder({
+    it('stores delivery address for delivery orders', async () => {
+      const deliveryOrder = makeOrder({
+        fulfillment_type: 'delivery',
+        delivery_address: {
+          street: 'Gedimino pr. 1',
+          city: 'Vilnius',
+          postal_code: 'LT-01103',
+          notes: '',
+        },
+      });
+      vi.mocked(submitOrderToSupabase).mockResolvedValue(deliveryOrder);
+      await useOrderStore.getState().submitOrder({
         ...sampleOrderParams,
         fulfillmentType: 'delivery',
         deliveryAddress: {
@@ -79,156 +140,177 @@ describe('useOrderStore', () => {
           notes: '',
         },
       });
-      const order = useOrderStore.getState().getOrder(code)!;
+      const order = useOrderStore.getState().orders[0];
       expect(order.fulfillment_type).toBe('delivery');
       expect(order.delivery_address!.street).toBe('Gedimino pr. 1');
     });
 
-    it('stores contact phone', () => {
-      const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-      const order = useOrderStore.getState().getOrder(code)!;
+    it('stores contact phone', async () => {
+      vi.mocked(submitOrderToSupabase).mockResolvedValue(makeOrder());
+      await useOrderStore.getState().submitOrder(sampleOrderParams);
+      const order = useOrderStore.getState().orders[0];
       expect(order.contact_phone).toBe('+37060000000');
     });
 
-    it('stores total amount', () => {
-      const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-      const order = useOrderStore.getState().getOrder(code)!;
+    it('stores total amount', async () => {
+      vi.mocked(submitOrderToSupabase).mockResolvedValue(makeOrder());
+      await useOrderStore.getState().submitOrder(sampleOrderParams);
+      const order = useOrderStore.getState().orders[0];
       expect(order.total_amount).toBe(1600);
     });
 
-    it('prepends to orders array', () => {
-      const code1 = useOrderStore.getState().submitOrder(sampleOrderParams);
-      const code2 = useOrderStore.getState().submitOrder(sampleOrderParams);
+    it('prepends to orders array', async () => {
+      const order1 = makeOrder({ id: 'uuid-001' });
+      const order2 = makeOrder({ id: 'uuid-002' });
+      vi.mocked(submitOrderToSupabase).mockResolvedValueOnce(order1);
+      await useOrderStore.getState().submitOrder(sampleOrderParams);
+      vi.mocked(submitOrderToSupabase).mockResolvedValueOnce(order2);
+      await useOrderStore.getState().submitOrder(sampleOrderParams);
       const orders = useOrderStore.getState().orders;
-      expect(orders[0].id).toBe(code2);
-      expect(orders[1].id).toBe(code1);
+      expect(orders[0].id).toBe('uuid-002');
+      expect(orders[1].id).toBe('uuid-001');
     });
 
-    it('generates unique codes', () => {
-      const codes = new Set<string>();
-      for (let i = 0; i < 10; i++) {
-        codes.add(useOrderStore.getState().submitOrder(sampleOrderParams));
-      }
-      expect(codes.size).toBe(10);
+    it('falls back to local order on Supabase failure', async () => {
+      vi.mocked(submitOrderToSupabase).mockRejectedValue(new Error('Network error'));
+      const id = await useOrderStore.getState().submitOrder(sampleOrderParams);
+      // Should return a 3-digit local ID
+      expect(id).toMatch(/^\d{3}$/);
+      const order = useOrderStore.getState().orders[0];
+      expect(order.status).toBe('CREATED');
+      expect(order.fulfillment_type).toBe('pickup');
+      expect(order.items[0].product_name).toBe('Margarita');
     });
   });
 
   describe('getOrder', () => {
-    it('finds existing order', () => {
-      const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-      const order = useOrderStore.getState().getOrder(code);
+    it('finds cached order', async () => {
+      useOrderStore.setState({ orders: [makeOrder({ id: 'uuid-001' })] });
+      const order = await useOrderStore.getState().getOrder('uuid-001');
       expect(order).not.toBeNull();
-      expect(order!.id).toBe(code);
+      expect(order!.id).toBe('uuid-001');
+      expect(fetchOrder).not.toHaveBeenCalled();
     });
 
-    it('returns null for missing', () => {
-      expect(useOrderStore.getState().getOrder('000')).toBeNull();
-    });
-  });
-
-  describe('getOrdersByPhone', () => {
-    it('filters by phone', () => {
-      useOrderStore.getState().submitOrder(sampleOrderParams);
-      useOrderStore.getState().submitOrder(sampleOrderParams);
-      useOrderStore.getState().submitOrder({
-        ...sampleOrderParams,
-        contactPhone: '+37061111111',
-      });
-      const result = useOrderStore.getState().getOrdersByPhone('+37060000000');
-      expect(result).toHaveLength(2);
+    it('fetches from Supabase if not cached', async () => {
+      const order = makeOrder({ id: 'uuid-002' });
+      vi.mocked(fetchOrder).mockResolvedValue(order);
+      const result = await useOrderStore.getState().getOrder('uuid-002');
+      expect(result).not.toBeNull();
+      expect(result!.id).toBe('uuid-002');
+      expect(fetchOrder).toHaveBeenCalledWith('uuid-002');
     });
 
-    it('returns sorted newest first', () => {
-      useOrderStore.getState().submitOrder(sampleOrderParams);
-      useOrderStore.getState().submitOrder(sampleOrderParams);
-      const result = useOrderStore.getState().getOrdersByPhone('+37060000000');
-      expect(
-        new Date(result[0].created_at).getTime()
-      ).toBeGreaterThanOrEqual(new Date(result[1].created_at).getTime());
-    });
-
-    it('returns empty for unmatched phone', () => {
-      useOrderStore.getState().submitOrder(sampleOrderParams);
-      expect(useOrderStore.getState().getOrdersByPhone('999')).toHaveLength(0);
+    it('returns null for missing order', async () => {
+      vi.mocked(fetchOrder).mockResolvedValue(null);
+      const result = await useOrderStore.getState().getOrder('nonexistent');
+      expect(result).toBeNull();
     });
   });
 
-  describe('getAllOrders', () => {
-    it('returns all orders', () => {
-      useOrderStore.getState().submitOrder(sampleOrderParams);
-      useOrderStore.getState().submitOrder(sampleOrderParams);
-      useOrderStore.getState().submitOrder(sampleOrderParams);
-      expect(useOrderStore.getState().getAllOrders()).toHaveLength(3);
+  describe('loadUserOrders', () => {
+    it('loads orders from Supabase', async () => {
+      const orders = [makeOrder({ id: 'uuid-001' }), makeOrder({ id: 'uuid-002' })];
+      vi.mocked(fetchUserOrders).mockResolvedValue(orders);
+      await useOrderStore.getState().loadUserOrders();
+      expect(useOrderStore.getState().orders).toHaveLength(2);
     });
 
-    it('sorted newest first', () => {
-      useOrderStore.getState().submitOrder(sampleOrderParams);
-      useOrderStore.getState().submitOrder(sampleOrderParams);
-      const orders = useOrderStore.getState().getAllOrders();
-      expect(
-        new Date(orders[0].created_at).getTime()
-      ).toBeGreaterThanOrEqual(new Date(orders[1].created_at).getTime());
+    it('replaces existing orders', async () => {
+      useOrderStore.setState({ orders: [makeOrder({ id: 'old' })] });
+      vi.mocked(fetchUserOrders).mockResolvedValue([makeOrder({ id: 'new' })]);
+      await useOrderStore.getState().loadUserOrders();
+      expect(useOrderStore.getState().orders).toHaveLength(1);
+      expect(useOrderStore.getState().orders[0].id).toBe('new');
+    });
+  });
+
+  describe('loadAllOrders', () => {
+    it('loads all orders from Supabase', async () => {
+      const orders = [
+        makeOrder({ id: 'uuid-001' }),
+        makeOrder({ id: 'uuid-002' }),
+        makeOrder({ id: 'uuid-003' }),
+      ];
+      vi.mocked(fetchAllOrders).mockResolvedValue(orders);
+      await useOrderStore.getState().loadAllOrders();
+      expect(useOrderStore.getState().orders).toHaveLength(3);
     });
   });
 
   describe('getActiveOrders', () => {
     it('includes CREATED, ACCEPTED, PREPARING, READY', () => {
-      const code1 = useOrderStore.getState().submitOrder(sampleOrderParams);
-      const code2 = useOrderStore.getState().submitOrder(sampleOrderParams);
-      const code3 = useOrderStore.getState().submitOrder(sampleOrderParams);
-      const code4 = useOrderStore.getState().submitOrder(sampleOrderParams);
-      useOrderStore.getState().updateOrderStatus(code2, 'ACCEPTED');
-      useOrderStore.getState().updateOrderStatus(code3, 'PREPARING');
-      useOrderStore.getState().updateOrderStatus(code4, 'READY');
+      useOrderStore.setState({
+        orders: [
+          makeOrder({ id: '1', status: 'CREATED', created_at: '2026-01-01T01:00:00Z' }),
+          makeOrder({ id: '2', status: 'ACCEPTED', created_at: '2026-01-01T02:00:00Z' }),
+          makeOrder({ id: '3', status: 'PREPARING', created_at: '2026-01-01T03:00:00Z' }),
+          makeOrder({ id: '4', status: 'READY', created_at: '2026-01-01T04:00:00Z' }),
+        ],
+      });
       const active = useOrderStore.getState().getActiveOrders();
       expect(active).toHaveLength(4);
     });
 
     it('excludes COMPLETED', () => {
-      const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-      useOrderStore.getState().updateOrderStatus(code, 'COMPLETED');
+      useOrderStore.setState({ orders: [makeOrder({ status: 'COMPLETED' })] });
       expect(useOrderStore.getState().getActiveOrders()).toHaveLength(0);
     });
 
     it('excludes CANCELLED', () => {
-      const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-      useOrderStore.getState().updateOrderStatus(code, 'CANCELLED');
+      useOrderStore.setState({ orders: [makeOrder({ status: 'CANCELLED' })] });
       expect(useOrderStore.getState().getActiveOrders()).toHaveLength(0);
     });
 
     it('sorted oldest first', () => {
-      useOrderStore.getState().submitOrder(sampleOrderParams);
-      useOrderStore.getState().submitOrder(sampleOrderParams);
+      useOrderStore.setState({
+        orders: [
+          makeOrder({ id: 'newer', created_at: '2026-02-01T00:00:00Z' }),
+          makeOrder({ id: 'older', created_at: '2026-01-01T00:00:00Z' }),
+        ],
+      });
       const active = useOrderStore.getState().getActiveOrders();
-      expect(
-        new Date(active[0].created_at).getTime()
-      ).toBeLessThanOrEqual(new Date(active[1].created_at).getTime());
+      expect(active[0].id).toBe('older');
+      expect(active[1].id).toBe('newer');
     });
   });
 
   describe('updateOrderStatus', () => {
-    it('updates status', () => {
-      const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-      useOrderStore.getState().updateOrderStatus(code, 'ACCEPTED');
-      expect(useOrderStore.getState().getOrder(code)!.status).toBe('ACCEPTED');
+    it('updates status', async () => {
+      useOrderStore.setState({ orders: [makeOrder({ id: 'uuid-001' })] });
+      vi.mocked(updateOrderStatusInSupabase).mockResolvedValue(undefined);
+      await useOrderStore.getState().updateOrderStatus('uuid-001', 'ACCEPTED');
+      const order = useOrderStore.getState().orders.find((o) => o.id === 'uuid-001');
+      expect(order!.status).toBe('ACCEPTED');
     });
 
-    it('updates updated_at', () => {
-      const code = useOrderStore.getState().submitOrder(sampleOrderParams);
-      const before = useOrderStore.getState().getOrder(code)!.updated_at;
-      useOrderStore.getState().updateOrderStatus(code, 'ACCEPTED');
-      const after = useOrderStore.getState().getOrder(code)!.updated_at;
-      expect(new Date(after).getTime()).toBeGreaterThanOrEqual(
-        new Date(before).getTime()
+    it('calls updateOrderStatusInSupabase', async () => {
+      useOrderStore.setState({ orders: [makeOrder({ id: 'uuid-001' })] });
+      vi.mocked(updateOrderStatusInSupabase).mockResolvedValue(undefined);
+      await useOrderStore.getState().updateOrderStatus('uuid-001', 'ACCEPTED');
+      expect(updateOrderStatusInSupabase).toHaveBeenCalledWith('uuid-001', 'ACCEPTED');
+    });
+
+    it('updates updated_at', async () => {
+      useOrderStore.setState({
+        orders: [makeOrder({ id: 'uuid-001', updated_at: '2026-01-01T00:00:00Z' })],
+      });
+      vi.mocked(updateOrderStatusInSupabase).mockResolvedValue(undefined);
+      await useOrderStore.getState().updateOrderStatus('uuid-001', 'ACCEPTED');
+      const order = useOrderStore.getState().orders.find((o) => o.id === 'uuid-001');
+      expect(new Date(order!.updated_at).getTime()).toBeGreaterThan(
+        new Date('2026-01-01T00:00:00Z').getTime()
       );
     });
 
-    it('supports full lifecycle', () => {
-      const code = useOrderStore.getState().submitOrder(sampleOrderParams);
+    it('supports full lifecycle', async () => {
+      useOrderStore.setState({ orders: [makeOrder({ id: 'uuid-001' })] });
+      vi.mocked(updateOrderStatusInSupabase).mockResolvedValue(undefined);
       const statuses = ['ACCEPTED', 'PREPARING', 'READY', 'COMPLETED'] as const;
       for (const status of statuses) {
-        useOrderStore.getState().updateOrderStatus(code, status);
-        expect(useOrderStore.getState().getOrder(code)!.status).toBe(status);
+        await useOrderStore.getState().updateOrderStatus('uuid-001', status);
+        const order = useOrderStore.getState().orders.find((o) => o.id === 'uuid-001');
+        expect(order!.status).toBe(status);
       }
     });
   });
