@@ -7,8 +7,18 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import { useMemo } from "react";
+
 export function OrderHistory() {
-  const orders = useOrderStore((s) => s.getAllOrders());
+  const allOrders = useOrderStore((s) => s.orders);
+  const orders = useMemo(
+    () =>
+      [...allOrders].sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      ),
+    [allOrders]
+  );
 
   if (orders.length === 0) {
     return (

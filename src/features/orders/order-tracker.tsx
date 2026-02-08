@@ -23,7 +23,9 @@ const stepLabels: Record<string, string> = {
 };
 
 export function OrderTracker({ orderId }: { orderId: string }) {
-  const order = useOrderStore((s) => s.getOrder(orderId));
+  const order = useOrderStore(
+    (s) => s.orders.find((o) => o.id === orderId) ?? null
+  );
 
   if (!order) {
     return (
