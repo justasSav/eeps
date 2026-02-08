@@ -14,19 +14,50 @@ vi.mock('next/link', () => ({
 const mockAddItem = vi.fn();
 const mockCartItems = vi.fn<() => CartItem[]>().mockReturnValue([]);
 
-vi.mock('@/store/cart', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/store/cart')>();
-  return {
-    ...actual,
-    useCartStore: (selector: (state: unknown) => unknown) => {
-      const mockState = {
-        addItem: mockAddItem,
-        items: mockCartItems(),
-      };
-      return selector(mockState);
+vi.mock('@/store/cart', () => ({
+  useCartStore: (selector: (state: unknown) => unknown) => {
+    const mockState = {
+      addItem: mockAddItem,
+      items: mockCartItems(),
+    };
+    return selector(mockState);
+  },
+}));
+
+// Mock getMenu to return test data without hitting Supabase
+vi.mock('@/services/menu', () => ({
+  getMenu: vi.fn().mockResolvedValue([
+    {
+      id: 'cat-1',
+      name: 'Picos',
+      products: [
+        { id: 'p1', name: 'Margarita', description: 'Picos padažas, sūris.', base_price: 800, image_url: null, is_available: true, dietary_tags: ['vegetariškas'] },
+        { id: 'p2', name: 'Havajų', description: 'Ananasai, kumpis.', base_price: 900, image_url: null, is_available: true, dietary_tags: [] },
+      ],
     },
-  };
-});
+    {
+      id: 'cat-2',
+      name: 'Kebabai',
+      products: [
+        { id: 'p3', name: 'Kebabas lavašė', description: 'Kebabas.', base_price: 500, image_url: null, is_available: true, dietary_tags: [] },
+      ],
+    },
+    {
+      id: 'cat-3',
+      name: 'Kiti patiekalai',
+      products: [
+        { id: 'p4', name: 'Vištienos kepsneliai', description: 'Traškūs.', base_price: 400, image_url: null, is_available: true, dietary_tags: [] },
+      ],
+    },
+    {
+      id: 'cat-4',
+      name: 'Gėrimai',
+      products: [
+        { id: 'p5', name: 'Coca-Cola 330ml', description: 'Skardinė.', base_price: 150, image_url: null, is_available: true, dietary_tags: [] },
+      ],
+    },
+  ]),
+}));
 
 // Mock window.scrollTo
 window.scrollTo = vi.fn() as unknown as typeof window.scrollTo;
@@ -50,23 +81,24 @@ beforeEach(async () => {
 });
 
 describe('MenuList', () => {
-  it('renders all categories from menu', () => {
+  it('renders all categories from menu', async () => {
     render(<MenuList />);
-    expect(screen.getByRole('heading', { name: 'Picos' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Picos' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Kebabai' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Kiti patiekalai' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Gėrimai' })).toBeInTheDocument();
   });
 
-  it('renders products under categories', () => {
+  it('renders products under categories', async () => {
     render(<MenuList />);
-    expect(screen.getByText('Margarita')).toBeInTheDocument();
+    expect(await screen.findByText('Margarita')).toBeInTheDocument();
     expect(screen.getByText('Coca-Cola 330ml')).toBeInTheDocument();
   });
 
   it('search filters products by name', async () => {
     const user = userEvent.setup();
     render(<MenuList />);
+    await screen.findByText('Margarita');
     const searchInput = screen.getByPlaceholderText('Ieškoti meniu...');
     await user.type(searchInput, 'Margarita');
     expect(screen.getByText('Margarita')).toBeInTheDocument();
@@ -76,6 +108,7 @@ describe('MenuList', () => {
   it('search is case-insensitive', async () => {
     const user = userEvent.setup();
     render(<MenuList />);
+    await screen.findByText('Margarita');
     const searchInput = screen.getByPlaceholderText('Ieškoti meniu...');
     await user.type(searchInput, 'margarita');
     expect(screen.getByText('Margarita')).toBeInTheDocument();
@@ -84,6 +117,7 @@ describe('MenuList', () => {
   it('empty search shows all products', async () => {
     const user = userEvent.setup();
     render(<MenuList />);
+    await screen.findByText('Margarita');
     const searchInput = screen.getByPlaceholderText('Ieškoti meniu...');
     await user.type(searchInput, 'Margarita');
     await user.clear(searchInput);
@@ -94,13 +128,15 @@ describe('MenuList', () => {
   it('no results message when no match', async () => {
     const user = userEvent.setup();
     render(<MenuList />);
+    await screen.findByText('Margarita');
     const searchInput = screen.getByPlaceholderText('Ieškoti meniu...');
     await user.type(searchInput, 'xyzabc');
     expect(screen.getByText('Nieko nerasta.')).toBeInTheDocument();
   });
 
-  it('category filter is rendered', () => {
+  it('category filter is rendered', async () => {
     render(<MenuList />);
+    await screen.findByText('Margarita');
     // Category filter buttons exist (along with product "Pridėti" buttons)
     const buttons = screen.getAllByRole('button');
     expect(buttons.length).toBeGreaterThan(0);

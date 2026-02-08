@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { CartItem } from '@/types';
 
@@ -19,39 +19,31 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/',
 }));
 
-// Mock stores to avoid "getSnapshot should be cached" issues
+// Mock stores — avoid importOriginal to prevent loading real Supabase modules
 const mockItems = vi.fn<() => CartItem[]>().mockReturnValue([]);
 const mockGetTotal = vi.fn<() => number>().mockReturnValue(0);
 const mockClearCart = vi.fn();
-const mockSubmitOrder = vi.fn<() => string>().mockReturnValue('123');
+const mockSubmitOrder = vi.fn().mockResolvedValue('123');
 
-vi.mock('@/store/cart', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/store/cart')>();
-  return {
-    ...actual,
-    useCartStore: (selector: (state: unknown) => unknown) => {
-      const mockState = {
-        items: mockItems(),
-        getTotal: mockGetTotal,
-        clearCart: mockClearCart,
-      };
-      return selector(mockState);
-    },
-  };
-});
+vi.mock('@/store/cart', () => ({
+  useCartStore: (selector: (state: unknown) => unknown) => {
+    const mockState = {
+      items: mockItems(),
+      getTotal: mockGetTotal,
+      clearCart: mockClearCart,
+    };
+    return selector(mockState);
+  },
+}));
 
-vi.mock('@/store/orders', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/store/orders')>();
-  return {
-    ...actual,
-    useOrderStore: (selector: (state: unknown) => unknown) => {
-      const mockState = {
-        submitOrder: mockSubmitOrder,
-      };
-      return selector(mockState);
-    },
-  };
-});
+vi.mock('@/store/orders', () => ({
+  useOrderStore: (selector: (state: unknown) => unknown) => {
+    const mockState = {
+      submitOrder: mockSubmitOrder,
+    };
+    return selector(mockState);
+  },
+}));
 
 const sampleItems: CartItem[] = [
   {
@@ -80,7 +72,7 @@ beforeEach(async () => {
   mockItems.mockReturnValue(sampleItems);
   mockGetTotal.mockReturnValue(2500);
   mockClearCart.mockReset();
-  mockSubmitOrder.mockReturnValue('123');
+  mockSubmitOrder.mockReset().mockResolvedValue('123');
   mockPush.mockClear();
 });
 
@@ -149,9 +141,11 @@ describe('CheckoutForm', () => {
     render(<CheckoutForm />);
     await user.type(screen.getByPlaceholderText('+370 600 00000'), '+37060000000');
     await user.click(screen.getByText('Pateikti užsakymą'));
-    expect(mockSubmitOrder).toHaveBeenCalledTimes(1);
-    expect(mockClearCart).toHaveBeenCalledTimes(1);
-    expect(mockPush).toHaveBeenCalledWith('/tracking?id=123');
+    await waitFor(() => {
+      expect(mockSubmitOrder).toHaveBeenCalledTimes(1);
+      expect(mockClearCart).toHaveBeenCalledTimes(1);
+      expect(mockPush).toHaveBeenCalledWith('/tracking?id=123');
+    });
   });
 
   it('successful submit clears cart', async () => {
@@ -159,6 +153,8 @@ describe('CheckoutForm', () => {
     render(<CheckoutForm />);
     await user.type(screen.getByPlaceholderText('+370 600 00000'), '+37060000000');
     await user.click(screen.getByText('Pateikti užsakymą'));
-    expect(mockClearCart).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockClearCart).toHaveBeenCalledTimes(1);
+    });
   });
 });

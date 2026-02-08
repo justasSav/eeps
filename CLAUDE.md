@@ -98,6 +98,9 @@ eeps/
 - **Dev server:** `npm run dev`
 - **Build:** `npm run build`
 - **Lint:** `npm run lint`
+- **Unit tests:** `npm test`
+- **E2E tests:** `npm run test:e2e`
+- **Screenshot tests:** `npx playwright test tests/visual/screenshots.spec.ts`
 
 ### Environment Variables
 
@@ -244,5 +247,7 @@ AdminDashboard (authenticated) → useOrderStore.getActiveOrders()
 6. **All interactive components** need `"use client"` at the top.
 7. **Tailwind CSS 4** — uses `@import "tailwindcss"` syntax, not v3 `@tailwind` directives.
 8. **Test with `npm run build`** to catch TypeScript and Next.js errors.
-9. **Supabase backend** — menu and orders are in PostgreSQL. Add products via SQL or Supabase Dashboard.
-10. **Lithuanian language** — all UI text should be in Lithuanian to match existing patterns.
+9. **Run `npm test`** after changes to verify unit tests pass. Tests mock `@/services/orders` and `@/lib/supabase` to avoid network calls. Any test touching order/menu functionality must mock these modules.
+10. **Supabase backend** — menu and orders are in PostgreSQL. Add products via SQL or Supabase Dashboard.
+11. **Lithuanian language** — all UI text should be in Lithuanian to match existing patterns.
+12. **Screenshots** use `screenshots/yyyy-mm-dd-hh/` directory pattern. Run `npx playwright test tests/visual/screenshots.spec.ts` to capture all pages.
