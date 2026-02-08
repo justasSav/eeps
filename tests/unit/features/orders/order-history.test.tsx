@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { useOrderStore } from '@/store/orders';
 import type { Order } from '@/types';
 
 // Mock next/link
@@ -10,17 +9,15 @@ vi.mock('next/link', () => ({
   ),
 }));
 
-// Mock the order store to avoid "getSnapshot should be cached" with getAllOrders()
-const mockGetAllOrders = vi.fn<() => Order[]>().mockReturnValue([]);
+// Mock the order store — component now uses useOrderStore((s) => s.orders)
+const mockOrders = vi.fn<() => Order[]>().mockReturnValue([]);
 vi.mock('@/store/orders', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/store/orders')>();
   return {
     ...actual,
     useOrderStore: (selector: (state: unknown) => unknown) => {
-      // The component calls useOrderStore((s) => s.getAllOrders())
-      // We intercept this to return our mock data
       const mockState = {
-        getAllOrders: () => mockGetAllOrders(),
+        orders: mockOrders(),
       };
       return selector(mockState);
     },
@@ -51,13 +48,12 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
   };
 }
 
-// Dynamic import so mock is applied before module loads
 let OrderHistory: typeof import('@/features/orders/order-history').OrderHistory;
 
 beforeEach(async () => {
   const mod = await import('@/features/orders/order-history');
   OrderHistory = mod.OrderHistory;
-  mockGetAllOrders.mockReturnValue([]);
+  mockOrders.mockReturnValue([]);
 });
 
 describe('OrderHistory', () => {
@@ -74,7 +70,7 @@ describe('OrderHistory', () => {
 
   it('renders order cards', () => {
     const order = makeOrder({ id: '123' });
-    mockGetAllOrders.mockReturnValue([order]);
+    mockOrders.mockReturnValue([order]);
     render(<OrderHistory />);
     expect(screen.getByText('Užsakymas #123')).toBeInTheDocument();
     expect(screen.getByText('Pateiktas')).toBeInTheDocument();
@@ -82,7 +78,7 @@ describe('OrderHistory', () => {
 
   it('order card links to tracking', () => {
     const order = makeOrder({ id: '456' });
-    mockGetAllOrders.mockReturnValue([order]);
+    mockOrders.mockReturnValue([order]);
     render(<OrderHistory />);
     const link = screen.getByText('Užsakymas #456').closest('a');
     expect(link).toHaveAttribute('href', '/tracking?id=456');
@@ -91,17 +87,18 @@ describe('OrderHistory', () => {
   it('orders sorted newest first', () => {
     const order1 = makeOrder({ id: '100', created_at: '2026-01-01T00:00:00Z' });
     const order2 = makeOrder({ id: '200', created_at: '2026-02-01T00:00:00Z' });
-    // Already sorted newest first (as getAllOrders returns)
-    mockGetAllOrders.mockReturnValue([order2, order1]);
+    // Component sorts via useMemo, so provide unsorted
+    mockOrders.mockReturnValue([order1, order2]);
     render(<OrderHistory />);
     const orderLabels = screen.getAllByText(/Užsakymas #\d+/);
     expect(orderLabels).toHaveLength(2);
+    // Newest first after sort
     expect(orderLabels[0].textContent).toContain('200');
   });
 
   it('item count with correct pluralization - singular', () => {
     const order = makeOrder({ id: '100' });
-    mockGetAllOrders.mockReturnValue([order]);
+    mockOrders.mockReturnValue([order]);
     render(<OrderHistory />);
     expect(screen.getByText('1 prekė')).toBeInTheDocument();
   });
@@ -114,14 +111,14 @@ describe('OrderHistory', () => {
         { product_id: 'p2', product_name: 'B', quantity: 1, base_price: 200, item_total: 200 },
       ],
     });
-    mockGetAllOrders.mockReturnValue([order]);
+    mockOrders.mockReturnValue([order]);
     render(<OrderHistory />);
     expect(screen.getByText('2 prekės')).toBeInTheDocument();
   });
 
   it('shows total amount', () => {
     const order = makeOrder({ id: '100', total_amount: 1600 });
-    mockGetAllOrders.mockReturnValue([order]);
+    mockOrders.mockReturnValue([order]);
     render(<OrderHistory />);
     expect(screen.getByText('€16.00')).toBeInTheDocument();
   });

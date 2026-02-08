@@ -5,7 +5,8 @@ import { ShoppingCart, Pizza, ClipboardList, Shield } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 
 export function Navbar() {
-  const itemCount = useCartStore((s) => s.getItemCount());
+  const items = useCartStore((s) => s.items);
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
