@@ -7,7 +7,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:e2e": "npx playwright test",
+    "test:e2e:ui": "npx playwright test --ui"
   },
   "repository": {
     "type": "git",
@@ -32,9 +34,10 @@
   },
   "devDependencies": {
     "@playwright/mcp": "^0.0.64",
-    "@playwright/test": "^1.58.2",
+    "@playwright/test": "^1.56.0",
     "@tailwindcss/postcss": "^4.1.18",
     "postcss": "^8.5.6",
+    "serve": "^14.2.5",
     "tailwindcss": "^4.1.18"
   }
 }

@@ -6,7 +6,14 @@ import { formatPrice } from "@/lib/utils";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+const activeStatuses: OrderStatus[] = [
+  "CREATED",
+  "ACCEPTED",
+  "PREPARING",
+  "READY",
+];
 
 const nextStatus: Partial<Record<OrderStatus, OrderStatus>> = {
   CREATED: "ACCEPTED",
@@ -23,8 +30,18 @@ const nextLabel: Partial<Record<OrderStatus, string>> = {
 };
 
 export function AdminDashboard() {
-  const orders = useOrderStore((s) => s.getActiveOrders());
+  const allOrders = useOrderStore((s) => s.orders);
   const updateStatus = useOrderStore((s) => s.updateOrderStatus);
+  const orders = useMemo(
+    () =>
+      allOrders
+        .filter((o) => activeStatuses.includes(o.status))
+        .sort(
+          (a, b) =>
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        ),
+    [allOrders]
+  );
   const [, setTick] = useState(0);
 
   function refresh() {
