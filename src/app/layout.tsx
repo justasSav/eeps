@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="lt">
       <body className="bg-gray-50 font-sans text-gray-900 antialiased">
-        <div className="mx-auto min-h-screen max-w-lg">
+        <div className="mx-auto min-h-screen max-w-lg overflow-hidden">
           <Navbar />
           <main className="px-4 py-6">{children}</main>
         </div>
