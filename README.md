@@ -79,6 +79,20 @@ The Next.js app is configured with `output: "export"` for static generation, and
 - Real-time order tracking via Supabase Realtime
 - Admin dashboard for order management
 
+## Admin Area
+
+The admin dashboard is available at [/admin](https://justassav.github.io/eeps/admin). It is the staff-facing control panel for processing customer orders from arrival to completion.
+
+**Purpose:** Give kitchen and counter staff a single screen to monitor, process, and fulfil all incoming orders.
+
+**Main features:**
+
+- **Order queue** — view all active orders (non-completed, non-cancelled), sorted oldest-first so the most urgent appear at the top
+- **Order details** — each card shows the order ID, fulfillment type (delivery or collection), timestamp, contact phone, delivery address, line items with prices, optional customer notes, and the total amount
+- **Status progression** — advance an order one step at a time through the lifecycle: `CREATED → ACCEPTED → PREPARING → READY → COMPLETED`
+- **Order cancellation** — cancel any active order at any stage
+- **Manual refresh** — refresh the order list on demand
+
 ## Database
 
 SQL migrations are in `supabase/migrations/`. The schema includes tables for categories, products, modifier groups, modifier options, orders, and order items -- all with row-level security.
