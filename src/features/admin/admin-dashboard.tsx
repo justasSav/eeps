@@ -89,7 +89,7 @@ export function AdminDashboard() {
       {orders.map((order) => (
         <div
           key={order.id}
-          className="rounded-lg border border-gray-200 bg-white p-4"
+          className="overflow-hidden rounded-lg border border-gray-200 bg-white p-4"
         >
           <div className="flex items-center justify-between">
             <div>
@@ -105,7 +105,7 @@ export function AdminDashboard() {
             <StatusBadge status={order.status} />
           </div>
 
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 break-all text-xs text-gray-500">
             {new Date(order.created_at).toLocaleTimeString("lt-LT", {
               hour: "2-digit",
               minute: "2-digit",
@@ -114,7 +114,7 @@ export function AdminDashboard() {
           </p>
 
           {order.delivery_address && (
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 break-words text-xs text-gray-500">
               {order.delivery_address.street}, {order.delivery_address.city}{" "}
               {order.delivery_address.postal_code}
             </p>
@@ -134,7 +134,7 @@ export function AdminDashboard() {
           </div>
 
           {order.notes && (
-            <p className="mt-2 rounded bg-yellow-50 p-2 text-xs text-yellow-800">
+            <p className="mt-2 break-words rounded bg-yellow-50 p-2 text-xs text-yellow-800">
               Pastaba: {order.notes}
             </p>
           )}
