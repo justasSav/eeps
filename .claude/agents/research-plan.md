@@ -6,6 +6,25 @@ This document defines structured research workflows for investigating issues, pl
 
 ---
 
+## Prerequisites for GitHub Issue Work
+
+When investigating or implementing a GitHub issue, install the GitHub CLI (`gh`) first:
+
+```bash
+chmod 1777 /tmp  # Fix /tmp permissions if needed
+apt-get update -qq && apt-get install -y -qq gh
+```
+
+Then fetch the full issue details:
+
+```bash
+gh api repos/<owner>/<repo>/issues/<number>
+```
+
+Always read the complete issue description before starting work. After completing the task, verify all changes against the issue requirements.
+
+---
+
 ## 1. Bug Investigation Workflow
 
 When investigating a bug, follow this systematic approach:

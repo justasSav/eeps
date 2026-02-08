@@ -1,7 +1,7 @@
 "use client";
 
 import type { Product } from "@/types";
-import { formatPrice } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -9,13 +9,26 @@ import { Plus } from "lucide-react";
 interface ProductCardProps {
   product: Product;
   onAdd: (product: Product) => void;
+  quantity?: number;
 }
 
-export function ProductCard({ product, onAdd }: ProductCardProps) {
+export function ProductCard({ product, onAdd, quantity = 0 }: ProductCardProps) {
   return (
-    <div className="flex gap-4 py-4">
+    <div
+      className={cn(
+        "flex gap-4 py-4 pl-3",
+        quantity > 0
+          ? "border-l-4 border-l-blue-500"
+          : "border-l-4 border-l-transparent"
+      )}
+    >
       <div className="flex flex-1 flex-col">
-        <h3 className="text-base font-bold text-gray-900">{product.name}</h3>
+        <h3 className="text-base font-bold text-gray-900">
+          {quantity > 0 && (
+            <span className="text-blue-500">{quantity} × </span>
+          )}
+          {product.name}
+        </h3>
         <p className="mt-1 text-sm text-gray-500 line-clamp-2">
           {product.description}
         </p>

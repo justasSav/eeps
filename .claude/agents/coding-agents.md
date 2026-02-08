@@ -6,6 +6,25 @@ This document defines specialized agent workflows for common coding tasks in the
 
 ---
 
+## Prerequisites for GitHub Issue Work
+
+When the task involves a GitHub issue (e.g., "implement issue #18"), install the GitHub CLI (`gh`) before starting:
+
+```bash
+chmod 1777 /tmp  # Fix /tmp permissions if needed
+apt-get update -qq && apt-get install -y -qq gh
+```
+
+Then fetch the full issue details:
+
+```bash
+gh api repos/<owner>/<repo>/issues/<number>
+```
+
+Use the issue description to understand the full requirements before implementing. After implementation, verify your changes against every requirement in the issue.
+
+---
+
 ## Agent: Feature Builder
 
 **Role:** Implements new features end-to-end following the project architecture.
@@ -14,6 +33,7 @@ This document defines specialized agent workflows for common coding tasks in the
 
 **Process:**
 1. **Research Phase**
+   - If working from a GitHub issue, install `gh` and fetch the issue details first (see Prerequisites above)
    - Read `CLAUDE.md` for project conventions
    - Read `src/types/index.ts` for existing type definitions
    - Read relevant existing features in `src/features/` for patterns
@@ -57,6 +77,7 @@ This document defines specialized agent workflows for common coding tasks in the
 
 **Process:**
 1. **Understand the Bug**
+   - If working from a GitHub issue, install `gh` and fetch the issue details first (see Prerequisites above)
    - What is the expected behavior?
    - What is the actual behavior?
    - Which part of the app is affected?

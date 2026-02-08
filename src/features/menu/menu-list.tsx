@@ -17,6 +17,12 @@ export function MenuList() {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const addItem = useCartStore((s) => s.addItem);
+  const cartItems = useCartStore((s) => s.items);
+
+  function getQuantity(productId: string): number {
+    const item = cartItems.find((i) => i.cart_key === productId);
+    return item ? item.quantity : 0;
+  }
   const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
   const isScrollingTo = useRef(false);
 
@@ -125,6 +131,7 @@ export function MenuList() {
                 key={product.id}
                 product={product}
                 onAdd={handleAdd}
+                quantity={getQuantity(product.id)}
               />
             ))}
           </div>
