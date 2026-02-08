@@ -36,9 +36,8 @@ npx playwright install --with-deps chromium
 2. Take a snapshot — verify the menu page renders with categories and products
 3. Click the cart icon/link in the navbar — verify `/cart` loads
 4. Navigate to `/orders` — verify the order history page loads
-5. Navigate to `/auth/login` — verify the login page loads
-6. Navigate to `/admin` — verify the admin dashboard loads
-7. Return to home — verify navigation back works
+5. Navigate to `/admin` — verify the admin dashboard loads
+6. Return to home — verify navigation back works
 
 **Pass criteria:** All pages return visible content, no blank screens or error messages.
 
@@ -48,35 +47,36 @@ npx playwright install --with-deps chromium
 
 **Process:**
 1. Navigate to the home page
-2. Take a snapshot — verify products are displayed with names and prices
-3. Test category filter: click each category pill and verify the product list updates
-4. Test search: type a product name (e.g., "Margherita") into the search input and verify filtered results
+2. Take a snapshot — verify products are displayed with names and prices in € format
+3. Test category filter: click each category pill (Picos, Kebabai, Mėsainiai, Kiti patiekalai, Gėrimai) and verify the product list updates
+4. Test search: type a product name (e.g., "Margarita") into the search input and verify filtered results
 5. Clear search — verify full menu returns
 
-**Pass criteria:** Categories filter correctly, search returns relevant results, prices display in £ format.
+**Pass criteria:** Categories filter correctly, search returns relevant results, prices display in € format (e.g., "€8.00").
 
-### 3. Product Customization Test
+### 3. Add to Cart Test
 
-**Goal:** Verify the product customizer modal works.
+**Goal:** Verify products can be added to the cart directly from the menu.
 
 **Process:**
 1. Navigate to the home page
-2. Click on a product card to open the customizer modal
-3. Take a snapshot — verify modifier groups are displayed (e.g., size, toppings)
-4. Select modifiers — verify price updates reflect the selections
-5. Change quantity — verify the total updates
-6. Click "Add to Cart" — verify the modal closes and the cart badge updates
+2. Click the "Add" button on a product card (e.g., Margarita pizza)
+3. Verify the cart badge in the navbar updates (shows item count)
+4. Click "Add" on a different product
+5. Verify the cart badge increments
+6. Click "Add" on the same first product again
+7. Verify the cart badge reflects the correct total quantity (item should be deduplicated with quantity 2)
 
-**Pass criteria:** Modifiers display correctly, price calculations are accurate, item is added to cart.
+**Pass criteria:** Products are added directly to cart, cart badge updates, duplicate products increment quantity instead of creating new entries.
 
 ### 4. Cart Functionality Test
 
 **Goal:** Verify cart operations.
 
 **Process:**
-1. Add at least 2 different items to the cart via the customizer
+1. Add at least 2 different items to the cart via the "Add" buttons on the menu
 2. Navigate to `/cart`
-3. Take a snapshot — verify all added items appear with correct names, modifiers, quantities, and prices
+3. Take a snapshot — verify all added items appear with correct names, quantities, and prices
 4. Test quantity controls: increment and decrement an item
 5. Verify the cart total updates correctly
 6. Remove an item — verify it disappears and total updates
@@ -92,8 +92,8 @@ npx playwright install --with-deps chromium
 1. Add an item to cart and navigate to checkout
 2. Take a snapshot — verify the form renders with fulfillment type selection
 3. Select "Delivery" — verify address fields appear
-4. Fill in required fields (name, phone, address)
-5. Select "Collection" — verify address fields hide
+4. Fill in required fields (phone, address fields)
+5. Select "Pickup" — verify address fields hide
 6. Verify the order summary section shows correct items and total
 7. Do NOT submit the order (to avoid creating test data in production)
 
@@ -107,7 +107,7 @@ npx playwright install --with-deps chromium
 1. Test at mobile width (375px) — verify single-column layout, no horizontal overflow
 2. Test at tablet width (768px) — verify layout adapts appropriately
 3. Test at desktop width (1024px) — verify max-width container is centered
-4. Check the navbar collapses/adapts at each width
+4. Check the navbar adapts at each width
 
 **Pass criteria:** No layout breakage, content is accessible at all tested widths.
 
@@ -141,7 +141,7 @@ After running tests, provide a summary:
 |-------|--------|-------|
 | Smoke Test | PASS/FAIL | Details... |
 | Menu Browsing | PASS/FAIL | Details... |
-| Product Customization | PASS/FAIL | Details... |
+| Add to Cart | PASS/FAIL | Details... |
 | Cart Functionality | PASS/FAIL | Details... |
 | Checkout Flow | PASS/FAIL | Details... |
 | Responsive Design | PASS/FAIL | Details... |

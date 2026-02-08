@@ -2,6 +2,8 @@
 
 This document defines specialized agent workflows for common coding tasks in the EEPS project. Each agent has a focused role and follows a defined process.
 
+> **Architecture note:** EEPS runs entirely client-side. Menu data is hardcoded in `src/data/menu.ts`. Orders and cart are Zustand stores persisted to localStorage. There is no backend database or authentication at runtime.
+
 ---
 
 ## Agent: Feature Builder
@@ -15,18 +17,19 @@ This document defines specialized agent workflows for common coding tasks in the
    - Read `CLAUDE.md` for project conventions
    - Read `src/types/index.ts` for existing type definitions
    - Read relevant existing features in `src/features/` for patterns
-   - Check `supabase/migrations/` for database schema
+   - Read `src/data/menu.ts` for menu structure
+   - Read `src/store/cart.ts` and `src/store/orders.ts` for state patterns
 
 2. **Planning Phase**
-   - Determine required changes: database, types, services, store, components, routes
+   - Determine required changes: types, data, store, components, routes
    - List files to create and files to modify
    - Identify dependencies on existing code
 
 3. **Implementation Phase (in order)**
-   - Create database migration in `supabase/migrations/`
    - Add TypeScript interfaces to `src/types/index.ts`
-   - Add service functions to `src/services/`
-   - Add/modify Zustand store if needed (`src/store/`)
+   - Add static data to `src/data/` if needed
+   - Add/modify Zustand store in `src/store/` if needed (with `persist` middleware)
+   - Add service functions to `src/services/` if needed
    - Create feature components in `src/features/<name>/`
    - Create page route in `src/app/<route>/page.tsx`
    - Update navbar if needed
@@ -38,10 +41,11 @@ This document defines specialized agent workflows for common coding tasks in the
 
 **Conventions to follow:**
 - `"use client"` on all interactive components
-- Prices as integers (pence)
+- Prices as integers (cents), displayed with `formatPrice()` as `€X.XX`
 - Mobile-first Tailwind CSS
 - Use existing UI components from `src/components/ui/`
-- Use `cn()` for class merging, `formatPrice()` for prices
+- Use `cn()` for class merging
+- Lithuanian UI labels
 
 ---
 
@@ -66,12 +70,12 @@ This document defines specialized agent workflows for common coding tasks in the
    - Trace the logic step by step
    - Check for common issues:
      - Missing null checks
-     - Incorrect state updates
-     - RLS policy blocking access
+     - Incorrect Zustand state updates (stale closures, wrong selectors)
      - Price calculation errors (float vs int)
      - Cart key generation inconsistencies
      - Missing "use client" directive
      - Stale closure in useEffect
+     - localStorage hydration mismatch
 
 4. **Fix**
    - Make the minimal change to fix the issue
@@ -115,27 +119,6 @@ This document defines specialized agent workflows for common coding tasks in the
 
 ---
 
-## Agent: Database Migration Author
-
-**Role:** Creates safe, well-structured SQL migrations.
-
-**Trigger:** User needs schema changes.
-
-**Process:**
-1. **Read current schema** in `supabase/migrations/001_initial_schema.sql`
-2. **Read seed data** in `supabase/migrations/002_seed_data.sql` for context
-3. **Determine migration number** from existing files
-4. **Write migration SQL** following conventions:
-   - UUID primary keys with `gen_random_uuid()`
-   - TIMESTAMPTZ for dates
-   - INTEGER for prices
-   - RLS enabled + policies
-   - Proper indexes
-5. **Update TypeScript types** in `src/types/index.ts`
-6. **Update services** in `src/services/` to use new schema
-
----
-
 ## Agent: Code Reviewer
 
 **Role:** Reviews code for correctness, security, performance, and style.
@@ -145,10 +128,10 @@ This document defines specialized agent workflows for common coding tasks in the
 **Process:**
 1. **Read all files** in the scope of review
 2. **Check against categories:**
-   - **Correctness:** Logic errors, edge cases, type safety
-   - **Security:** XSS, injection, data exposure, RLS coverage
-   - **Performance:** Unnecessary re-renders, missing memoization, data fetching patterns
-   - **Style:** CLAUDE.md conventions, consistent patterns, mobile-first CSS
+   - **Correctness:** Logic errors, edge cases, type safety, Zustand selector patterns
+   - **Security:** XSS, data exposure, localStorage validation
+   - **Performance:** Unnecessary re-renders, missing memoization, Zustand selector granularity
+   - **Style:** CLAUDE.md conventions, consistent patterns, mobile-first CSS, Lithuanian labels
    - **Accessibility:** Labels, contrast, keyboard support
 3. **Report findings** with severity levels and code fix suggestions
 
@@ -170,7 +153,7 @@ This document defines specialized agent workflows for common coding tasks in the
 3. **Plan changes** that maintain identical behavior
 4. **Implement incrementally** — one logical change at a time
 5. **Verify with `npm run build`** after each change
-6. **Do not change:** APIs, prop interfaces, routes, database schema (unless asked)
+6. **Do not change:** APIs, prop interfaces, routes, data structures (unless asked)
 
 ---
 
@@ -189,7 +172,7 @@ This document defines specialized agent workflows for common coding tasks in the
    - Error handling
    - For price functions: integer arithmetic correctness
    - For cart: key generation, deduplication, quantity updates
-   - For modifiers: min/max validation
+   - For orders: code generation, status transitions, localStorage persistence
 4. **Write tests** following the project's test framework (if configured)
 5. **Run tests** to verify they pass
 
@@ -211,8 +194,8 @@ This document defines specialized agent workflows for common coding tasks in the
 3. **Execute test suites** from `.claude/agents/ui-testing-agent.md`:
    - Smoke Test (page load & navigation)
    - Menu Browsing (search & category filter)
-   - Product Customization (modifier selection & pricing)
-   - Cart Functionality (add, update, remove items)
+   - Add to Cart (direct add from product cards)
+   - Cart Functionality (quantity, remove, totals)
    - Checkout Flow (form rendering & validation)
    - Responsive Design (mobile, tablet, desktop viewports)
 4. **Report** — Summarize pass/fail results per suite with any issues found
@@ -225,10 +208,9 @@ This document defines specialized agent workflows for common coding tasks in the
 
 ### Pattern: Full Feature Implementation
 1. **Research Agent** → understands codebase context and conventions
-2. **Database Migration Author** → creates schema changes
-3. **Feature Builder** → implements the feature
-4. **Code Reviewer** → reviews the implementation
-5. **Build verification** → `npm run build && npm run lint`
+2. **Feature Builder** → implements the feature (types, store, components, routes)
+3. **Code Reviewer** → reviews the implementation
+4. **Build verification** → `npm run build && npm run lint`
 
 ### Pattern: Bug Fix with Root Cause Analysis
 1. **Research Agent** → traces the data flow and identifies root cause

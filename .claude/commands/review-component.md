@@ -17,18 +17,20 @@ Perform a thorough code review of a component or module in the EEPS codebase.
    - Are props typed correctly?
    - Is state managed properly (no stale closures, proper dependency arrays)?
    - Are edge cases handled (empty arrays, null values, loading states)?
-   - Do price calculations use integers (pence), not floats?
+   - Do price calculations use integers (cents), not floats?
+   - Is the Zustand store accessed correctly (selector pattern to avoid re-renders)?
 
    ### Security
    - No XSS vulnerabilities (raw HTML injection)
    - No sensitive data in client-side code
-   - Supabase RLS policies cover the data access pattern
-   - No user input passed directly to queries without sanitization
+   - No user input passed unsanitized to dangerous operations
+   - localStorage data is validated when read back
 
    ### Performance
    - Unnecessary re-renders (missing useMemo/useCallback where needed)?
-   - Large data fetches without pagination?
+   - Zustand selectors granular enough (avoid subscribing to entire store)?
    - Missing loading states causing layout shift?
+   - Large data structures being copied unnecessarily?
 
    ### Accessibility
    - Interactive elements have proper labels?
@@ -38,9 +40,10 @@ Perform a thorough code review of a component or module in the EEPS codebase.
    ### Code Style
    - Follows project conventions (CLAUDE.md)?
    - Uses `cn()` for class merging?
-   - Uses `formatPrice()` for price display?
+   - Uses `formatPrice()` for price display (not manual formatting)?
    - Has `"use client"` directive if interactive?
    - Mobile-first Tailwind classes?
+   - UI text in Lithuanian?
 
 4. **Output a structured review** with:
    - Summary (1-2 sentences)

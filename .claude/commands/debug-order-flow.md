@@ -3,44 +3,58 @@
 Trace and diagnose issues in the order submission, tracking, or admin management flow.
 
 ## Arguments
-- $ARGUMENTS: Description of the issue (e.g., "orders not appearing in admin dashboard" or "realtime updates not working")
+- $ARGUMENTS: Description of the issue (e.g., "orders not appearing in admin dashboard" or "cart total incorrect")
 
 ## Instructions
 
 1. **Identify which part of the order flow is affected.** The full flow is:
-   - Cart → Checkout → submitOrder() → Database → Realtime → Tracking/Admin
+   - Menu → Cart → Checkout → Order Store → Tracking/Admin
 
 2. **Check the relevant files based on the issue:**
 
-   **Cart/Checkout issues:**
-   - `src/store/cart.ts` — cart state, addItem/removeItem logic, persistence
-   - `src/features/orders/checkout-form.tsx` — form validation, submitOrder call
-   - `src/lib/utils.ts` — generateCartKey(), calculateModifiersCost()
+   **Menu/Add-to-cart issues:**
+   - `src/data/menu.ts` — hardcoded product data (prices, availability, categories)
+   - `src/services/menu.ts` — `getMenu()` returns the hardcoded menu
+   - `src/features/menu/menu-list.tsx` — search, category filtering, add-to-cart trigger
+   - `src/features/menu/product-card.tsx` — product display, "Add" button callback
+   - `src/lib/utils.ts` — `generateCartKey()`, `formatPrice()`
 
-   **Order submission issues:**
-   - `src/services/orders.ts` — submitOrder() function, Supabase inserts
-   - `supabase/migrations/001_initial_schema.sql` — RLS policies on orders/order_items
-   - Check that user_id matches RLS policy expectations
+   **Cart issues:**
+   - `src/store/cart.ts` — Zustand store: addItem, removeItem, updateQuantity, getTotal
+   - `src/features/cart/cart-view.tsx` — cart page rendering, total display
+   - `src/features/cart/cart-item-row.tsx` — quantity controls, item removal
+   - `src/lib/utils.ts` — `generateCartKey(productId)` for deduplication
 
-   **Realtime/tracking issues:**
-   - `src/hooks/useRealtime.ts` — Supabase channel subscription setup
-   - `src/features/orders/order-tracker.tsx` — realtime callback handling
-   - `src/features/admin/admin-dashboard.tsx` — realtime listener for all orders
-   - Verify Supabase Realtime is enabled for the orders table
+   **Checkout/submission issues:**
+   - `src/features/orders/checkout-form.tsx` — form validation, fulfillment type, submitOrder call
+   - `src/store/orders.ts` — `submitOrder()`: generates 3-digit code, persists to localStorage
+   - `src/store/cart.ts` — `clearCart()` called after successful submission
 
-   **Status update issues:**
-   - `src/services/orders.ts` — updateOrderStatus() function
-   - `src/features/admin/admin-dashboard.tsx` — nextStatus mapping
-   - Check the order status CHECK constraint in the schema
+   **Tracking issues:**
+   - `src/app/tracking/page.tsx` — reads `?id=` query param, renders OrderTracker
+   - `src/features/orders/order-tracker.tsx` — fetches order from store, displays progress stepper
+   - `src/store/orders.ts` — `getOrder(code)` lookup
+
+   **Admin/status update issues:**
+   - `src/features/admin/admin-dashboard.tsx` — lists active orders, status transition buttons
+   - `src/store/orders.ts` — `getActiveOrders()`, `updateOrderStatus(code, status)`
+   - `src/components/shared/status-badge.tsx` — status label + color mapping
+
+   **Order history issues:**
+   - `src/features/orders/order-history.tsx` — lists all past orders
+   - `src/store/orders.ts` — `getAllOrders()`, `getOrdersByPhone(phone)`
 
 3. **Read the identified files** and trace the data flow step by step.
 
 4. **Look for common issues:**
-   - RLS policies blocking reads/writes (user_id mismatch)
-   - Missing `"use client"` directive on new components
-   - Supabase Realtime not enabled on the table
-   - Price calculation errors (integer vs float)
-   - Cart key generation inconsistencies
+   - Price calculation errors (integer cents vs float)
+   - Cart key generation inconsistencies (same product not deduplicating)
+   - Missing `"use client"` directive on new/modified components
+   - Zustand persist hydration issues (SSR vs client mismatch)
+   - localStorage quota or serialization errors
+   - Order code collisions (3-digit codes only allow 900 unique orders)
+   - Status transition logic errors in admin dashboard
+   - Query param not being read correctly on tracking page
 
 5. **Propose a fix** with minimal code changes. Explain what went wrong and why the fix works.
 
