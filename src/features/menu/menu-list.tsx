@@ -6,18 +6,31 @@ import { getMenu } from "@/services/menu";
 import { CategoryFilter } from "./category-filter";
 import { ProductCard } from "./product-card";
 import { useCartStore } from "@/store/cart";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-const categories: Category[] = getMenu();
-
 export function MenuList() {
-  const [activeCategory, setActiveCategory] = useState<string | null>(
-    categories[0]?.id ?? null
-  );
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const addItem = useCartStore((s) => s.addItem);
   const cartItems = useCartStore((s) => s.items);
+
+  useEffect(() => {
+    getMenu()
+      .then((data) => {
+        setCategories(data);
+        setActiveCategory(data[0]?.id ?? null);
+      })
+      .catch((err) => {
+        setError(
+          err instanceof Error ? err.message : "Nepavyko užkrauti meniu."
+        );
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   function getQuantity(productId: string): number {
     const item = cartItems.find((i) => i.cart_key === productId);
@@ -92,7 +105,23 @@ export function MenuList() {
 
     sections.forEach(([, el]) => observer.observe(el));
     return () => observer.disconnect();
-  }, [searchQuery]);
+  }, [searchQuery, categories]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg bg-red-50 p-6 text-center">
+        <p className="text-sm text-red-600">{error}</p>
+      </div>
+    );
+  }
 
   const filteredCategories = categories
     .map((cat) => ({

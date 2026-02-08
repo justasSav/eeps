@@ -1,16 +1,24 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { useOrderStore } from "@/store/orders";
 import { formatPrice } from "@/lib/utils";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { useMemo } from "react";
 
 export function OrderHistory() {
   const allOrders = useOrderStore((s) => s.orders);
+  const loading = useOrderStore((s) => s.loading);
+  const loadUserOrders = useOrderStore((s) => s.loadUserOrders);
+
+  useEffect(() => {
+    loadUserOrders();
+  }, [loadUserOrders]);
+
   const orders = useMemo(
     () =>
       [...allOrders].sort(
@@ -19,6 +27,14 @@ export function OrderHistory() {
       ),
     [allOrders]
   );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      </div>
+    );
+  }
 
   if (orders.length === 0) {
     return (
@@ -48,7 +64,7 @@ export function OrderHistory() {
         >
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-900">
-              Užsakymas #{order.id}
+              Užsakymas #{order.id.slice(0, 8)}
             </span>
             <StatusBadge status={order.status} />
           </div>

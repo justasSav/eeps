@@ -1,10 +1,11 @@
 "use client";
 
-import type { OrderStatus } from "@/types";
+import { useEffect, useState } from "react";
+import type { Order, OrderStatus } from "@/types";
 import { useOrderStore } from "@/store/orders";
 import { formatPrice } from "@/lib/utils";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 
 const statusSteps: OrderStatus[] = [
   "CREATED",
@@ -23,9 +24,23 @@ const stepLabels: Record<string, string> = {
 };
 
 export function OrderTracker({ orderId }: { orderId: string }) {
-  const order = useOrderStore(
-    (s) => s.orders.find((o) => o.id === orderId) ?? null
-  );
+  const getOrder = useOrderStore((s) => s.getOrder);
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getOrder(orderId)
+      .then((o) => setOrder(o))
+      .finally(() => setLoading(false));
+  }, [orderId, getOrder]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      </div>
+    );
+  }
 
   if (!order) {
     return (
@@ -41,7 +56,7 @@ export function OrderTracker({ orderId }: { orderId: string }) {
       <div className="text-center">
         <h1 className="text-xl font-bold text-gray-900">Užsakymo sekimas</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Užsakymas #{order.id}
+          Užsakymas #{order.id.slice(0, 8)}
         </p>
         <div className="mt-2">
           <StatusBadge status={order.status} />

@@ -25,8 +25,9 @@ export function CheckoutForm() {
   const [addressNotes, setAddressNotes] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (items.length === 0) return;
     if (!phone.trim()) {
@@ -39,21 +40,29 @@ export function CheckoutForm() {
     }
 
     setError(null);
+    setSubmitting(true);
 
-    const orderCode = submitOrder({
-      items,
-      fulfillmentType: fulfillment,
-      deliveryAddress:
-        fulfillment === "delivery"
-          ? { street, city, postal_code: postalCode, notes: addressNotes }
-          : null,
-      contactPhone: phone,
-      notes,
-      totalAmount: getTotal(),
-    });
+    try {
+      const orderId = await submitOrder({
+        items,
+        fulfillmentType: fulfillment,
+        deliveryAddress:
+          fulfillment === "delivery"
+            ? { street, city, postal_code: postalCode, notes: addressNotes }
+            : null,
+        contactPhone: phone,
+        notes,
+        totalAmount: getTotal(),
+      });
 
-    clearCart();
-    router.push(`/tracking?id=${orderCode}`);
+      clearCart();
+      router.push(`/tracking?id=${orderId}`);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Nepavyko pateikti užsakymo."
+      );
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -157,8 +166,8 @@ export function CheckoutForm() {
         <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</p>
       )}
 
-      <Button type="submit" className="w-full" size="lg">
-        Pateikti užsakymą
+      <Button type="submit" className="w-full" size="lg" disabled={submitting}>
+        {submitting ? "Pateikiama..." : "Pateikti užsakymą"}
       </Button>
     </form>
   );

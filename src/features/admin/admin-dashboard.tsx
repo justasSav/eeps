@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import type { OrderStatus } from "@/types";
 import { useOrderStore } from "@/store/orders";
 import { useAuthStore } from "@/store/auth";
@@ -7,8 +8,8 @@ import { formatPrice } from "@/lib/utils";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { AdminLogin } from "@/features/admin/admin-login";
-import { RefreshCw, LogOut } from "lucide-react";
-import { useMemo, useState } from "react";
+import { RefreshCw, LogOut, Loader2 } from "lucide-react";
+import { useMemo } from "react";
 
 const activeStatuses: OrderStatus[] = [
   "CREATED",
@@ -35,7 +36,16 @@ export function AdminDashboard() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const logout = useAuthStore((s) => s.logout);
   const allOrders = useOrderStore((s) => s.orders);
+  const loading = useOrderStore((s) => s.loading);
   const updateStatus = useOrderStore((s) => s.updateOrderStatus);
+  const loadAllOrders = useOrderStore((s) => s.loadAllOrders);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadAllOrders();
+    }
+  }, [isAuthenticated, loadAllOrders]);
+
   const orders = useMemo(
     () =>
       allOrders
@@ -46,10 +56,9 @@ export function AdminDashboard() {
         ),
     [allOrders]
   );
-  const [, setTick] = useState(0);
 
   function refresh() {
-    setTick((t) => t + 1);
+    loadAllOrders();
   }
 
   function handleAdvance(orderId: string, currentStatus: OrderStatus) {
@@ -82,7 +91,13 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      {orders.length === 0 && (
+      {loading && (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
+        </div>
+      )}
+
+      {!loading && orders.length === 0 && (
         <p className="py-8 text-center text-gray-500">Aktyvių užsakymų nėra.</p>
       )}
 
@@ -94,7 +109,7 @@ export function AdminDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <span className="font-semibold text-gray-900">
-                Užsakymas #{order.id}
+                Užsakymas #{order.id.slice(0, 8)}
               </span>
               <span className="ml-2 text-xs text-gray-500">
                 {order.fulfillment_type === "delivery"
