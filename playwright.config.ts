@@ -2,6 +2,7 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests",
+  testIgnore: ["**/unit/**"],
   baseURL: "http://localhost:3000",
   use: {
     viewport: { width: 390, height: 844 },
