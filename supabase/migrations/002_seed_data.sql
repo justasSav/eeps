@@ -2,9 +2,8 @@
 INSERT INTO categories (id, name, sort_order) VALUES
   ('a1000000-0000-0000-0000-000000000001', 'Picos', 1),
   ('a1000000-0000-0000-0000-000000000002', 'Kebabai', 2),
-  ('a1000000-0000-0000-0000-000000000003', 'Mėsainiai', 3),
-  ('a1000000-0000-0000-0000-000000000004', 'Kiti patiekalai', 4),
-  ('a1000000-0000-0000-0000-000000000005', 'Gėrimai', 5);
+  ('a1000000-0000-0000-0000-000000000004', 'Kiti patiekalai', 3),
+  ('a1000000-0000-0000-0000-000000000005', 'Gėrimai', 4);
 
 -- Seed products: Picos
 INSERT INTO products (id, category_id, name, description, base_price, is_available, dietary_tags) VALUES
@@ -26,12 +25,6 @@ INSERT INTO products (id, category_id, name, description, base_price, is_availab
   ('b1000000-0000-0000-0000-000000000013', 'a1000000-0000-0000-0000-000000000002', 'Kebabas lavašė su jautiena (didelis)', 'Didelis kebabas lavašė su jautiena, salotomis ir padažu.', 700, true, '{}'),
   ('b1000000-0000-0000-0000-000000000014', 'a1000000-0000-0000-0000-000000000002', 'Kebabas lėkštėje su vištiena', 'Kebabas lėkštėje su vištiena, salotomis ir padažu.', 600, true, '{}'),
   ('b1000000-0000-0000-0000-000000000015', 'a1000000-0000-0000-0000-000000000002', 'Kebabas lėkštėje su jautiena', 'Kebabas lėkštėje su jautiena, salotomis ir padažu.', 700, true, '{}');
-
--- Seed products: Mėsainiai
-INSERT INTO products (id, category_id, name, description, base_price, is_available, dietary_tags) VALUES
-  ('b1000000-0000-0000-0000-000000000040', 'a1000000-0000-0000-0000-000000000003', 'Mėsainis su vištiena', 'Mėsainis su vištienos kotletu.', 400, true, '{}'),
-  ('b1000000-0000-0000-0000-000000000041', 'a1000000-0000-0000-0000-000000000003', 'Mėsainis su jautiena', 'Mėsainis su jautienos kotletu.', 500, true, '{}'),
-  ('b1000000-0000-0000-0000-000000000042', 'a1000000-0000-0000-0000-000000000003', 'Vegetariškas mėsainis', 'Mėsainis su daržovių kotletu.', 500, true, '{"vegetariškas"}');
 
 -- Seed products: Kiti patiekalai
 INSERT INTO products (id, category_id, name, description, base_price, is_available, dietary_tags) VALUES
