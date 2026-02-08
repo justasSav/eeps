@@ -81,7 +81,17 @@ The Next.js app is configured with `output: "export"` for static generation, and
 
 ## Admin Area
 
-The admin dashboard is available at [/admin](https://justassav.github.io/eeps/admin). Staff use it to manage incoming orders in real time. Each order card displays the order ID, fulfillment type (delivery or collection), contact phone, delivery address, line items with prices, optional notes, and the total amount. Staff can advance an order through the status lifecycle (`CREATED → ACCEPTED → PREPARING → READY → COMPLETED`) or cancel it at any stage. The dashboard only shows active (non-completed, non-cancelled) orders, sorted oldest-first so the most urgent orders appear at the top.
+The admin dashboard is available at [/admin](https://justassav.github.io/eeps/admin). It is the staff-facing control panel for processing customer orders from arrival to completion.
+
+**Purpose:** Give kitchen and counter staff a single screen to monitor, process, and fulfil all incoming orders.
+
+**Main features:**
+
+- **Order queue** — view all active orders (non-completed, non-cancelled), sorted oldest-first so the most urgent appear at the top
+- **Order details** — each card shows the order ID, fulfillment type (delivery or collection), timestamp, contact phone, delivery address, line items with prices, optional customer notes, and the total amount
+- **Status progression** — advance an order one step at a time through the lifecycle: `CREATED → ACCEPTED → PREPARING → READY → COMPLETED`
+- **Order cancellation** — cancel any active order at any stage
+- **Manual refresh** — refresh the order list on demand
 
 ## Database
 
