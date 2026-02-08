@@ -73,7 +73,8 @@ eeps/
     │   │   ├── order-history.tsx    # Past orders list
     │   │   └── order-tracker.tsx    # Order progress tracking by code
     │   └── admin/                   # Staff order management
-    │       └── admin-dashboard.tsx  # Active orders with status controls
+    │       ├── admin-dashboard.tsx  # Active orders with status controls + auth gate
+    │       └── admin-login.tsx      # Admin login form (demo credentials)
     ├── hooks/                       # Custom React hooks
     │   ├── useRealtime.ts           # (empty stub — Supabase removed)
     │   └── useLocalStorage.ts       # Browser localStorage wrapper
@@ -84,6 +85,7 @@ eeps/
     │   ├── menu.ts                  # getMenu() — returns hardcoded Category[]
     │   └── orders.ts                # (empty stub — order logic moved to store/orders.ts)
     ├── store/                       # Client state management (Zustand)
+    │   ├── auth.ts                  # Auth store: demo admin login/logout (localStorage)
     │   ├── cart.ts                  # Cart store with localStorage persistence
     │   └── orders.ts                # Order store: submit, track, update status
     └── types/                       # TypeScript interfaces
@@ -120,7 +122,7 @@ The `gh` command is used to fetch issue details (`gh api repos/<owner>/<repo>/is
 | Framework | Next.js 16 (App Router) | All pages under `src/app/` |
 | UI | React 19 + Tailwind CSS 4 | Mobile-first, max-w-lg container |
 | Components | CVA + clsx + tailwind-merge | shadcn/ui-style variant pattern |
-| State | Zustand + persist middleware | Cart + orders in localStorage |
+| State | Zustand + persist middleware | Cart + orders + admin auth in localStorage |
 | Data | Hardcoded in `src/data/menu.ts` | No backend database at runtime |
 | Icons | lucide-react | Consistent icon set |
 | Language | Lithuanian (LT) | All UI labels are in Lithuanian |
@@ -143,6 +145,10 @@ Menu is hardcoded in `src/data/menu.ts` as a `Category[]` array. Each category c
 Orders are managed by a Zustand store (`src/store/orders.ts`) persisted to localStorage under the key `"eeps-orders"`. Order IDs are 3-digit codes (100–999), not UUIDs.
 
 **Order status lifecycle:** `CREATED → ACCEPTED → PREPARING → READY → COMPLETED` (or `CANCELLED`)
+
+### Admin Auth Storage
+
+Admin authentication is a Zustand store (`src/store/auth.ts`) persisted to localStorage under the key `"eeps-admin-auth"`. Stores a boolean `isAuthenticated` flag. Demo credentials: username `demo`, password `demo`.
 
 ### Cart Storage
 
@@ -174,11 +180,20 @@ CheckoutForm submit → useOrderStore.submitOrder()
 → displays order progress (5-step stepper)
 ```
 
+### Admin Authentication
+```
+/admin → AdminDashboard checks useAuthStore.isAuthenticated
+→ if false: renders AdminLogin form
+→ login(username, password) validates against hardcoded demo/demo
+→ if true: renders admin dashboard
+```
+
 ### Admin Management
 ```
-AdminDashboard → useOrderStore.getActiveOrders()
+AdminDashboard (authenticated) → useOrderStore.getActiveOrders()
 → status buttons: Accept → Prepare → Ready → Complete (or Cancel)
 → useOrderStore.updateOrderStatus()
+→ Logout button → useAuthStore.logout()
 ```
 
 ## Code Style and Conventions
@@ -198,6 +213,7 @@ AdminDashboard → useOrderStore.getActiveOrders()
 | `cn(...classes)` | `lib/utils.ts` | Tailwind-aware class merging (clsx + twMerge) |
 | `formatPrice(cents)` | `lib/utils.ts` | `800 → "€8.00"` |
 | `generateCartKey(productId)` | `lib/utils.ts` | Unique cart item identifier (returns productId) |
+| `useAuthStore` | `store/auth.ts` | Zustand admin auth: login, logout |
 | `useCartStore` | `store/cart.ts` | Zustand cart state & actions |
 | `useOrderStore` | `store/orders.ts` | Zustand order state: submit, track, update |
 | `useLocalStorage(key, initial)` | `hooks/useLocalStorage.ts` | Generic localStorage hook |

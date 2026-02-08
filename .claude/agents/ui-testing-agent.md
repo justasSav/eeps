@@ -36,8 +36,9 @@ npx playwright install --with-deps chromium
 2. Take a snapshot — verify the menu page renders with categories and products
 3. Click the cart icon/link in the navbar — verify `/cart` loads
 4. Navigate to `/orders` — verify the order history page loads
-5. Navigate to `/admin` — verify the admin dashboard loads
-6. Return to home — verify navigation back works
+5. Navigate to `/admin` — verify the login form renders (auth gate)
+6. Log in with demo/demo credentials — verify the admin dashboard loads
+7. Return to home — verify navigation back works
 
 **Pass criteria:** All pages return visible content, no blank screens or error messages.
 

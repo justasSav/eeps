@@ -42,8 +42,12 @@ Trace and diagnose issues in the order submission, tracking, or admin management
    - `src/features/orders/order-tracker.tsx` — fetches order from store, displays progress stepper
    - `src/store/orders.ts` — `getOrder(code)` lookup
 
+   **Admin authentication issues:**
+   - `src/store/auth.ts` — `useAuthStore`: login(username, password), logout(), isAuthenticated
+   - `src/features/admin/admin-login.tsx` — login form (demo/demo credentials)
+
    **Admin/status update issues:**
-   - `src/features/admin/admin-dashboard.tsx` — lists active orders, status transition buttons
+   - `src/features/admin/admin-dashboard.tsx` — auth gate + lists active orders, status transition buttons
    - `src/store/orders.ts` — `getActiveOrders()`, `updateOrderStatus(code, status)`
    - `src/components/shared/status-badge.tsx` — status label + color mapping
 

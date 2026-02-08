@@ -1,9 +1,15 @@
 import { test, expect } from "@playwright/test";
-import { seedOrders, createOrder } from "../helpers/seed-orders";
+import { seedOrders, createOrder, loginAsAdmin } from "../helpers/seed-orders";
 
-// Navigate to /admin after seeding localStorage; we need a blank page first
-// so we can write to localStorage before the app hydrates.
+// Navigate to /admin after seeding localStorage and setting auth state.
+// Navigates to "/" first if needed so localStorage is available for seeding.
 async function goToAdmin(page: import("@playwright/test").Page) {
+  // Ensure we have a page loaded so localStorage is available
+  const url = page.url();
+  if (url === "about:blank" || !url.startsWith("http")) {
+    await page.goto("/");
+  }
+  await loginAsAdmin(page);
   await page.goto("/admin");
   // Wait for the admin heading to confirm the page rendered
   await page.waitForSelector("text=Administratoriaus skydelis");
@@ -421,7 +427,8 @@ test.describe("Full workflow", () => {
     const url = page.url();
     const orderCode = new URL(url).searchParams.get("id")!;
 
-    // 3. Navigate to admin and verify the order is visible
+    // 3. Log in and navigate to admin to verify the order is visible
+    await loginAsAdmin(page);
     await page.goto("/admin");
     await page.waitForSelector("text=Administratoriaus skydelis");
     await expect(page.getByText(`Užsakymas #${orderCode}`)).toBeVisible();
